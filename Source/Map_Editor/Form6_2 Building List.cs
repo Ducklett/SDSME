@@ -49,7 +49,7 @@ namespace WindowsFormsApplication1
         {
             Form2 bldEditor = new Form2();
             bldEditor.Show(this);
-            if (Form1.isBW)
+            if (Form1.IsBW)
             {
                 Narc.Open(Form1.workingFolder + @"data\a\2\2\9").ExtractToFolder(Form1.workingFolder + @"data\a\2\2\exBld");
                 Narc.Open(Form1.workingFolder + @"data\a\2\3\0").ExtractToFolder(Form1.workingFolder + @"data\a\2\3\inBld");
@@ -133,7 +133,7 @@ namespace WindowsFormsApplication1
             }
             else
             {
-                if (Form1.isBW)
+                if (Form1.IsBW)
                 {
                     AB.Pack(Form1.workingFolder + @"data\a\2\3\inBld", Form1.workingFolder + @"data\a\2\3\inBld" + "\\" + comboBox1.SelectedIndex.ToString("D4"));
                 }
@@ -165,7 +165,7 @@ namespace WindowsFormsApplication1
             comboBox1.Items.Clear();
             if (checkBox1.Checked)
             {
-                if (Form1.isBW)
+                if (Form1.IsBW)
                 {
                     bldPath = Form1.workingFolder + @"data\a\2\3\inBld";
                 }
@@ -306,7 +306,7 @@ namespace WindowsFormsApplication1
         public void CloseForm()
         {
             this.Close();
-            if (Form1.isBW)
+            if (Form1.IsBW)
             {
                 if (Directory.Exists(Form1.workingFolder + @"data\a\2\3\inBld\header"))
                 {

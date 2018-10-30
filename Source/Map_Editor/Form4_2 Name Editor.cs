@@ -27,11 +27,11 @@ namespace WindowsFormsApplication1
             #region Map Names
             string path;
             int mainKey = 31881;
-            if (Form1.isBW)
+            if (Form1.IsBW)
             {
                 path = "0089";
             }
-            else if (Form1.isB2W2)
+            else if (Form1.IsBW2)
             {
                 path = "0109";
             }

@@ -34,7 +34,7 @@ namespace Map_Converter
             InitializeComponent();
             numericUpDown5.Visible = false;
             label8.Visible = false;
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 label5.Visible = false;
                 label6.Visible = false;
@@ -177,7 +177,7 @@ namespace Map_Converter
             button3.Enabled = true;
             button2.Enabled = true;
 
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(Form1.workingFolder + @"data\a\0\0\maps" + "\\" + Form1.mapIndex.ToString("D4")));
                 readMap.BaseStream.Position = Form1.vbldOffset + 0x4 + listBox1.SelectedIndex * 0x10;
@@ -245,7 +245,7 @@ namespace Map_Converter
 
         private void button3_Click(object sender, EventArgs e) // Save
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(Form1.workingFolder + @"data\a\0\0\maps" + "\\" + Form1.mapIndex.ToString("D4")));
                 File.Create(Form1.workingFolder + @"data\a\0\0\maps" + "\\" + Form1.mapIndex.ToString("D4") + "_new").Close();
@@ -334,7 +334,7 @@ namespace Map_Converter
 
         private void button1_Click(object sender, EventArgs e) // Add
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 amount++;
                 listBox1.Items.Add(rm.GetString("building") + amount); // Adds building to listbox
@@ -424,7 +424,7 @@ namespace Map_Converter
 
         private void button2_Click(object sender, EventArgs e) // Remove
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 amount--;
                 System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(Form1.workingFolder + @"data\a\0\0\maps" + "\\" + Form1.mapIndex.ToString("D4")));
@@ -526,7 +526,7 @@ namespace Map_Converter
 
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 if (gridMode == 0 && (numericUpDown2.Value > -18 && numericUpDown2.Value < 17) && (numericUpDown4.Value > -18 && numericUpDown4.Value < 17))
                 {
@@ -546,7 +546,7 @@ namespace Map_Converter
         {
             gridMode = 1;
             numericUpDown2.Value = dataGridView1.CurrentCellAddress.X - 17;
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 numericUpDown4.Value = (Int16)((dataGridView1.CurrentCellAddress.Y - 17) ^ 0xFFFF);
             }
@@ -559,7 +559,7 @@ namespace Map_Converter
 
         private void Form2_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 Form6_2_Building_List f6 = (Form6_2_Building_List)Application.OpenForms["Form6_2_Building_List"];
                 f6.CloseForm();

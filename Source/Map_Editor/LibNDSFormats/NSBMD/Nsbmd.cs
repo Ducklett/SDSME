@@ -933,7 +933,7 @@ namespace LibNDSFormats.NSBMD
                 nsbmdObject.Neg = (int)(v >> 8) & 0x0f;
                 nsbmdObject.RotA = a;
                 nsbmdObject.RotB = b;
-                nsbmdObject.rotate_mtx = mtxPivot(new float[] { nsbmdObject.RotA, nsbmdObject.RotB }, nsbmdObject.Pivot, nsbmdObject.Neg);
+                nsbmdObject.rotate_mtx = MtxPivot(new float[] { nsbmdObject.RotA, nsbmdObject.RotB }, nsbmdObject.Pivot, nsbmdObject.Neg);
                 r = NsbmdGlRenderer.multMatrix(r, nsbmdObject.rotate_mtx);
             }
             if ((v >> 1 & 1) == 0 && (v >> 3 & 1) == 0)
@@ -985,7 +985,7 @@ namespace LibNDSFormats.NSBMD
             nsbmdObject.materix = NsbmdGlRenderer.multMatrix(nsbmdObject.materix, r);
             nsbmdObject.materix = NsbmdGlRenderer.multMatrix(nsbmdObject.materix, s);
         }
-        public static float[] mtxPivot(float[] ab, int pv, int neg)
+        public static float[] MtxPivot(float[] ab, int pv, int neg)
         {
             float[] data = new float[16];
             data[15] = 1.0F;
@@ -1139,7 +1139,7 @@ namespace LibNDSFormats.NSBMD
             }
             return data;
         }
-        static Int32 getdword(byte[] b)
+        static Int32 Getdword(byte[] b)
         {
             Int32 v;
             v = b[0];
@@ -1148,7 +1148,7 @@ namespace LibNDSFormats.NSBMD
             v |= b[3] << 24;
             return v;
         }
-        static Int32 getword(byte[] b)
+        static Int32 Getword(byte[] b)
         {
             Int32 v;
             v = b[0];
@@ -1206,9 +1206,7 @@ namespace LibNDSFormats.NSBMD
                     case NDS_TYPE_TEX0:
                         result.materials = NsbtxLoader.ReadTex0(stream, blockoffset[i], out texnum, out palnum, out result.Textures, out result.Palettes);
                         break;
-                    default:
-                        throw new Exception("Unknown ID");
-                        break;
+                    default: throw new Exception("Unknown ID");
                 }
             }
 
@@ -1235,11 +1233,13 @@ namespace LibNDSFormats.NSBMD
 
         public static RGBA fromColor(System.Drawing.Color c)
         {
-            RGBA a = new RGBA();
-            a.R = c.R;
-            a.G = c.G;
-            a.B = c.B;
-            a.A = c.A;
+            RGBA a = new RGBA
+            {
+                R = c.R,
+                G = c.G,
+                B = c.B,
+                A = c.A
+            };
             return a;
         }
 
@@ -1252,42 +1252,22 @@ namespace LibNDSFormats.NSBMD
             {
                 switch (i)
                 {
-                    case 0:
-                        return R;
-                        break;
-                    case 1:
-                        return G;
-                        break;
-                    case 2:
-                        return B;
-                        break;
-                    case 3:
-                        return A;
-                        break;
-                    default:
-                        throw new Exception();
-                        break;
+                    case 0: return R;
+                    case 1: return G;
+                    case 2: return B;
+                    case 3: return A;
+                    default: throw new Exception();
                 }
             }
             set
             {
                 switch (i)
                 {
-                    case 0:
-                        R = value;
-                        break;
-                    case 1:
-                        G = value;
-                        break;
-                    case 2:
-                        B = value;
-                        break;
-                    case 3:
-                        A = value;
-                        break;
-                    default:
-                        throw new Exception();
-                        break;
+                    case 0: R = value; break;
+                    case 1: G = value; break;
+                    case 2: B = value; break;
+                    case 3: A = value; break;
+                    default: throw new Exception();
                 }
             }
         }

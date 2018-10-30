@@ -30,7 +30,7 @@ namespace WindowsFormsApplication1
 
         private void Form9_Load(object sender, EventArgs e)
         {
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 loadGenV();
                 return;
@@ -312,13 +312,13 @@ namespace WindowsFormsApplication1
             tabControl1.TabPages.Remove(tabPage1);
             tabControl1.TabPages.Remove(tabPage2);
             tabControl1.TabPages.Remove(tabPage3);
-            if (Form1.isBW) NarcAPI.Narc.Open(Form1.workingFolder + @"data\a\1\2\6").ExtractToFolder(Form1.workingFolder + @"data\a\1\2\wild");
+            if (Form1.IsBW) NarcAPI.Narc.Open(Form1.workingFolder + @"data\a\1\2\6").ExtractToFolder(Form1.workingFolder + @"data\a\1\2\wild");
             else NarcAPI.Narc.Open(Form1.workingFolder + @"data\a\1\2\7").ExtractToFolder(Form1.workingFolder + @"data\a\1\2\wild");
             List<string> names = new List<string>();
             #region Pokémon Names
             string path;
             int mainKey = 31881;
-            if (Form1.isBW)
+            if (Form1.IsBW)
             {
                 path = "0070";
             }
@@ -468,7 +468,7 @@ namespace WindowsFormsApplication1
             {
                 button1.Enabled = true;
                 #region Gen V
-                if (Form1.isBW || Form1.isB2W2)
+                if (Form1.IsBW || Form1.IsBW2)
                 {
                     editON = false;
                     int pokemon1;
@@ -1082,7 +1082,7 @@ namespace WindowsFormsApplication1
         private void button1_Click(object sender, EventArgs e) // Writes Wild Pokémon
         {
             #region Gen V
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 System.IO.BinaryWriter writeWild = new System.IO.BinaryWriter(File.OpenWrite(Form1.workingFolder + @"data\a\1\2\wild" + "\\" + comboBox1.SelectedIndex.ToString("D4")));
                 if (checkBox1.Checked)
@@ -1569,12 +1569,12 @@ namespace WindowsFormsApplication1
 
         private void Form9_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (Form1.isBW)
+            if (Form1.IsBW)
             {
                 NarcAPI.Narc.FromFolder(Form1.workingFolder + @"data\a\1\2\wild").Save(Form1.workingFolder + @"data\a\1\2\6");
                 Directory.Delete(Form1.workingFolder + @"data\a\1\2\wild", true);
             }
-            if (Form1.isB2W2)
+            if (Form1.IsBW2)
             {
                 NarcAPI.Narc.FromFolder(Form1.workingFolder + @"data\a\1\2\wild").Save(Form1.workingFolder + @"data\a\1\2\7");
                 Directory.Delete(Form1.workingFolder + @"data\a\1\2\wild", true);

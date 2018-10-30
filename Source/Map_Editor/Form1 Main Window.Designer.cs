@@ -221,6 +221,7 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.tabPage10 = new System.Windows.Forms.TabPage();
+            this.LockTexPal = new System.Windows.Forms.CheckBox();
             this.button15 = new System.Windows.Forms.Button();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.button49 = new System.Windows.Forms.Button();
@@ -229,7 +230,7 @@
             this.button48 = new System.Windows.Forms.Button();
             this.button46 = new System.Windows.Forms.Button();
             this.button47 = new System.Windows.Forms.Button();
-            this.listBox2 = new System.Windows.Forms.ListBox();
+            this.MapTexturelistBox = new System.Windows.Forms.ListBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.saveTilePNG = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -261,7 +262,7 @@
             this.Column66 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column67 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column68 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.listBox3 = new System.Windows.Forms.ListBox();
+            this.MapPalettelistBox = new System.Windows.Forms.ListBox();
             this.radioButton8 = new System.Windows.Forms.RadioButton();
             this.radioButton7 = new System.Windows.Forms.RadioButton();
             this.tilesetExport = new System.Windows.Forms.Button();
@@ -605,6 +606,8 @@
             this.button14 = new System.Windows.Forms.Button();
             this.button21 = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.PalOffset = new System.Windows.Forms.NumericUpDown();
+            this.label69 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox10.SuspendLayout();
@@ -728,6 +731,7 @@
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PalOffset)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -1829,7 +1833,7 @@
             this.dataGridView5.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView5_CellMouseEnter);
             this.dataGridView5.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dataGridView5_CellValidating);
             this.dataGridView5.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView5_CellValueChanged);
-            this.dataGridView5.SelectionChanged += new System.EventHandler(this.dataGridView5_SelectionChanged);
+            this.dataGridView5.SelectionChanged += new System.EventHandler(this.DataGridView5_SelectionChanged);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -2155,6 +2159,9 @@
             // 
             // tabPage10
             // 
+            this.tabPage10.Controls.Add(this.label69);
+            this.tabPage10.Controls.Add(this.PalOffset);
+            this.tabPage10.Controls.Add(this.LockTexPal);
             this.tabPage10.Controls.Add(this.button15);
             this.tabPage10.Controls.Add(this.groupBox5);
             this.tabPage10.Controls.Add(this.groupBox3);
@@ -2166,6 +2173,12 @@
             resources.ApplyResources(this.tabPage10, "tabPage10");
             this.tabPage10.Name = "tabPage10";
             this.tabPage10.UseVisualStyleBackColor = true;
+            // 
+            // LockTexPal
+            // 
+            resources.ApplyResources(this.LockTexPal, "LockTexPal");
+            this.LockTexPal.Name = "LockTexPal";
+            this.LockTexPal.UseVisualStyleBackColor = true;
             // 
             // button15
             // 
@@ -2182,7 +2195,7 @@
             this.groupBox5.Controls.Add(this.button48);
             this.groupBox5.Controls.Add(this.button46);
             this.groupBox5.Controls.Add(this.button47);
-            this.groupBox5.Controls.Add(this.listBox2);
+            this.groupBox5.Controls.Add(this.MapTexturelistBox);
             this.groupBox5.Controls.Add(this.pictureBox2);
             this.groupBox5.Controls.Add(this.saveTilePNG);
             resources.ApplyResources(this.groupBox5, "groupBox5");
@@ -2226,12 +2239,12 @@
             this.button47.Name = "button47";
             this.button47.UseVisualStyleBackColor = true;
             // 
-            // listBox2
+            // MapTexturelistBox
             // 
-            this.listBox2.FormattingEnabled = true;
-            resources.ApplyResources(this.listBox2, "listBox2");
-            this.listBox2.Name = "listBox2";
-            this.listBox2.SelectedIndexChanged += new System.EventHandler(this.listBox2_SelectedIndexChanged);
+            this.MapTexturelistBox.FormattingEnabled = true;
+            resources.ApplyResources(this.MapTexturelistBox, "MapTexturelistBox");
+            this.MapTexturelistBox.Name = "MapTexturelistBox";
+            this.MapTexturelistBox.SelectedIndexChanged += new System.EventHandler(this.OnSelectTexture);
             // 
             // pictureBox2
             // 
@@ -2260,7 +2273,7 @@
             this.groupBox3.Controls.Add(this.label18);
             this.groupBox3.Controls.Add(this.numericUpDown8);
             this.groupBox3.Controls.Add(this.dataGridView11);
-            this.groupBox3.Controls.Add(this.listBox3);
+            this.groupBox3.Controls.Add(this.MapPalettelistBox);
             resources.ApplyResources(this.groupBox3, "groupBox3");
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.TabStop = false;
@@ -2545,12 +2558,12 @@
             this.Column68.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Column68.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
-            // listBox3
+            // MapPalettelistBox
             // 
-            this.listBox3.FormattingEnabled = true;
-            resources.ApplyResources(this.listBox3, "listBox3");
-            this.listBox3.Name = "listBox3";
-            this.listBox3.SelectedIndexChanged += new System.EventHandler(this.listBox3_SelectedIndexChanged);
+            this.MapPalettelistBox.FormattingEnabled = true;
+            resources.ApplyResources(this.MapPalettelistBox, "MapPalettelistBox");
+            this.MapPalettelistBox.Name = "MapPalettelistBox";
+            this.MapPalettelistBox.SelectedIndexChanged += new System.EventHandler(this.MapSelectPalette);
             // 
             // radioButton8
             // 
@@ -2572,14 +2585,14 @@
             resources.ApplyResources(this.tilesetExport, "tilesetExport");
             this.tilesetExport.Name = "tilesetExport";
             this.tilesetExport.UseVisualStyleBackColor = true;
-            this.tilesetExport.Click += new System.EventHandler(this.tilesetExport_Click);
+            this.tilesetExport.Click += new System.EventHandler(this.TilesetExport_Click);
             // 
             // tilesetImport
             // 
             resources.ApplyResources(this.tilesetImport, "tilesetImport");
             this.tilesetImport.Name = "tilesetImport";
             this.tilesetImport.UseVisualStyleBackColor = true;
-            this.tilesetImport.Click += new System.EventHandler(this.tilesetImport_Click);
+            this.tilesetImport.Click += new System.EventHandler(this.TilesetImport_Click);
             // 
             // listBox1
             // 
@@ -2734,7 +2747,7 @@
             resources.ApplyResources(this.button5, "button5");
             this.button5.Name = "button5";
             this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
+            this.button5.Click += new System.EventHandler(this.OnExportMovePermissionsClick);
             // 
             // label4
             // 
@@ -2747,7 +2760,7 @@
             resources.ApplyResources(this.comboBox2, "comboBox2");
             this.comboBox2.FormattingEnabled = true;
             this.comboBox2.Name = "comboBox2";
-            this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.comboBox2_SelectedIndexChanged);
+            this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.ComboBox2_SelectedIndexChanged);
             // 
             // tabPage7
             // 
@@ -4717,7 +4730,7 @@
             resources.ApplyResources(this.checkBox5, "checkBox5");
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.UseVisualStyleBackColor = true;
-            this.checkBox5.CheckedChanged += new System.EventHandler(this.checkBox5_CheckedChanged);
+            this.checkBox5.CheckedChanged += new System.EventHandler(this.CheckBox5_CheckedChanged);
             // 
             // groupBox2
             // 
@@ -4845,21 +4858,21 @@
             resources.ApplyResources(this.radioButton11, "radioButton11");
             this.radioButton11.Name = "radioButton11";
             this.radioButton11.UseVisualStyleBackColor = true;
-            this.radioButton11.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton11.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // radioButton10
             // 
             resources.ApplyResources(this.radioButton10, "radioButton10");
             this.radioButton10.Name = "radioButton10";
             this.radioButton10.UseVisualStyleBackColor = true;
-            this.radioButton10.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton10.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // radioButton22
             // 
             resources.ApplyResources(this.radioButton22, "radioButton22");
             this.radioButton22.Name = "radioButton22";
             this.radioButton22.UseVisualStyleBackColor = true;
-            this.radioButton22.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton22.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // dataGridView9
             // 
@@ -4948,7 +4961,7 @@
             this.dataGridView9.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView9_CellClick);
             this.dataGridView9.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dataGridView9_CellValidating);
             this.dataGridView9.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView9_CellValueChanged);
-            this.dataGridView9.SelectionChanged += new System.EventHandler(this.dataGridView9_SelectionChanged);
+            this.dataGridView9.SelectionChanged += new System.EventHandler(this.DataGridView9_SelectionChanged);
             // 
             // dataGridViewTextBoxColumn19
             // 
@@ -5245,7 +5258,7 @@
             this.radioButton21.Name = "radioButton21";
             this.radioButton21.TabStop = true;
             this.radioButton21.UseVisualStyleBackColor = true;
-            this.radioButton21.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton21.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // label14
             // 
@@ -5257,7 +5270,7 @@
             resources.ApplyResources(this.radioButton20, "radioButton20");
             this.radioButton20.Name = "radioButton20";
             this.radioButton20.UseVisualStyleBackColor = true;
-            this.radioButton20.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton20.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // label15
             // 
@@ -5269,21 +5282,21 @@
             resources.ApplyResources(this.radioButton19, "radioButton19");
             this.radioButton19.Name = "radioButton19";
             this.radioButton19.UseVisualStyleBackColor = true;
-            this.radioButton19.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton19.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // radioButton9
             // 
             resources.ApplyResources(this.radioButton9, "radioButton9");
             this.radioButton9.Name = "radioButton9";
             this.radioButton9.UseVisualStyleBackColor = true;
-            this.radioButton9.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton9.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // radioButton16
             // 
             resources.ApplyResources(this.radioButton16, "radioButton16");
             this.radioButton16.Name = "radioButton16";
             this.radioButton16.UseVisualStyleBackColor = true;
-            this.radioButton16.CheckedChanged += new System.EventHandler(this.changeLayer);
+            this.radioButton16.CheckedChanged += new System.EventHandler(this.ChangeLayer);
             // 
             // tabPage21
             // 
@@ -5609,14 +5622,14 @@
             resources.ApplyResources(this.button25, "button25");
             this.button25.Name = "button25";
             this.button25.UseVisualStyleBackColor = true;
-            this.button25.Click += new System.EventHandler(this.tilesetExport_Click);
+            this.button25.Click += new System.EventHandler(this.TilesetExport_Click);
             // 
             // button27
             // 
             resources.ApplyResources(this.button27, "button27");
             this.button27.Name = "button27";
             this.button27.UseVisualStyleBackColor = true;
-            this.button27.Click += new System.EventHandler(this.tilesetImport_Click);
+            this.button27.Click += new System.EventHandler(this.TilesetImport_Click);
             // 
             // button28
             // 
@@ -5726,7 +5739,7 @@
             resources.ApplyResources(this.button40, "button40");
             this.button40.Name = "button40";
             this.button40.UseVisualStyleBackColor = true;
-            this.button40.Click += new System.EventHandler(this.button40_Click);
+            this.button40.Click += new System.EventHandler(this.OnGenVExportMovePermissionsClick);
             // 
             // label21
             // 
@@ -5739,7 +5752,7 @@
             resources.ApplyResources(this.comboBox8, "comboBox8");
             this.comboBox8.FormattingEnabled = true;
             this.comboBox8.Name = "comboBox8";
-            this.comboBox8.SelectedIndexChanged += new System.EventHandler(this.comboBox8_SelectedIndexChanged);
+            this.comboBox8.SelectedIndexChanged += new System.EventHandler(this.ComboBox8_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -5759,19 +5772,19 @@
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             resources.ApplyResources(this.openToolStripMenuItem, "openToolStripMenuItem");
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // saveROMToolStripMenuItem
             // 
             resources.ApplyResources(this.saveROMToolStripMenuItem, "saveROMToolStripMenuItem");
             this.saveROMToolStripMenuItem.Name = "saveROMToolStripMenuItem";
-            this.saveROMToolStripMenuItem.Click += new System.EventHandler(this.saveROMToolStripMenuItem_Click);
+            this.saveROMToolStripMenuItem.Click += new System.EventHandler(this.SaveROMToolStripMenuItem_Click);
             // 
             // quitToolStripMenuItem
             // 
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
             resources.ApplyResources(this.quitToolStripMenuItem, "quitToolStripMenuItem");
-            this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitClick);
             // 
             // toolsToolStripMenuItem
             // 
@@ -5786,13 +5799,13 @@
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             resources.ApplyResources(this.toolStripMenuItem2, "toolStripMenuItem2");
-            this.toolStripMenuItem2.Click += new System.EventHandler(this.editMapViewerColoursToolStripMenuItem_Click);
+            this.toolStripMenuItem2.Click += new System.EventHandler(this.EditMapViewerColoursToolStripMenuItem_Click);
             // 
             // editMapViewerColoursToolStripMenuItem
             // 
             this.editMapViewerColoursToolStripMenuItem.Name = "editMapViewerColoursToolStripMenuItem";
             resources.ApplyResources(this.editMapViewerColoursToolStripMenuItem, "editMapViewerColoursToolStripMenuItem");
-            this.editMapViewerColoursToolStripMenuItem.Click += new System.EventHandler(this.editMapViewerColoursToolStripMenuItem_ClickBW);
+            this.editMapViewerColoursToolStripMenuItem.Click += new System.EventHandler(this.EditMapViewerColoursToolStripMenuItem_ClickBW);
             // 
             // sPKPackagesToolStripMenuItem
             // 
@@ -5811,7 +5824,7 @@
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             resources.ApplyResources(this.toolStripMenuItem1, "toolStripMenuItem1");
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.AboutClick);
             // 
             // menuStrip1
             // 
@@ -5842,14 +5855,14 @@
             resources.ApplyResources(this.button2, "button2");
             this.button2.Name = "button2";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            this.button2.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // button3
             // 
             resources.ApplyResources(this.button3, "button3");
             this.button3.Name = "button3";
             this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.saveROMToolStripMenuItem_Click);
+            this.button3.Click += new System.EventHandler(this.SaveROMToolStripMenuItem_Click);
             // 
             // pictureBox1
             // 
@@ -5883,6 +5896,21 @@
             // 
             this.timer1.Interval = 10;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // PalOffset
+            // 
+            resources.ApplyResources(this.PalOffset, "PalOffset");
+            this.PalOffset.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            -2147483648});
+            this.PalOffset.Name = "PalOffset";
+            // 
+            // label69
+            // 
+            resources.ApplyResources(this.label69, "label69");
+            this.label69.Name = "label69";
             // 
             // Form1
             // 
@@ -6051,6 +6079,7 @@
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PalOffset)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -6167,8 +6196,8 @@
         private System.Windows.Forms.TabPage tabPage10;
         private System.Windows.Forms.ListBox listBox1;
         private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.ListBox listBox3;
-        private System.Windows.Forms.ListBox listBox2;
+        private System.Windows.Forms.ListBox MapPalettelistBox;
+        private System.Windows.Forms.ListBox MapTexturelistBox;
         private System.Windows.Forms.Button saveTilePNG;
         private System.Windows.Forms.Button tilesetExport;
         private System.Windows.Forms.Button tilesetImport;
@@ -6570,6 +6599,9 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn98;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn99;
         private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.CheckBox LockTexPal;
+        private System.Windows.Forms.Label label69;
+        private System.Windows.Forms.NumericUpDown PalOffset;
     }
 }
 

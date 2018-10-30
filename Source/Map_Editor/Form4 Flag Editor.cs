@@ -23,7 +23,7 @@ namespace WindowsFormsApplication1
             if ((value & (1 << 2)) != 0) checkBox6.Checked = true;
             if ((value & (1 << 1)) != 0) checkBox7.Checked = true;
             if ((value & (1 << 0)) != 0) checkBox8.Checked = true;
-            if (Form1.isBW || Form1.isB2W2)
+            if (Form1.IsBW || Form1.IsBW2)
             {
                 string name = checkBox4.Text;
                 string name2 = checkBox1.Text;

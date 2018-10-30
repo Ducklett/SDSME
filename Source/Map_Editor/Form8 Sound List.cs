@@ -37,11 +37,11 @@ namespace WindowsFormsApplication1
 
         private void Form8_Load(object sender, EventArgs e)
         {
-            if (Form1.isBW == true)
+            if (Form1.IsBW == true)
             {
                 soundPath = Form1.workingFolder + @"data\wb_sound_data.sdat";
             }
-            else if (Form1.isB2W2 == true)
+            else if (Form1.IsBW2 == true)
             {
                 soundPath = Form1.workingFolder + @"data\swan_sound_data.sdat";
             }

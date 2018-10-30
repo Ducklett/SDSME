@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Globalization;
 using System.Resources;
 using System.Reflection;
 using System.Threading;
 using NarcAPI;
-using AB_API;
-using Map_Converter;
 using Tao.OpenGl;
 using LibNDSFormats.NSBMD;
-using LibNDSFormats.NSBTX;
 
 namespace WindowsFormsApplication1
 {
@@ -86,8 +79,6 @@ namespace WindowsFormsApplication1
         public List<int> useIndex = new List<int>();
         public List<bool> fixMovOffset = new List<bool>();
         public static bool soundON = false;
-        public static bool isBW = false;
-        public static bool isB2W2 = false;
         public static int mapType = 0;
         public static int vmodelOffset;
         public static int vpermOffset;
@@ -104,6 +95,35 @@ namespace WindowsFormsApplication1
         public List<MemoryStream> scriptList = new List<MemoryStream>();
         public List<List<MemoryStream>> functionList = new List<List<MemoryStream>>();
         public List<List<MemoryStream>> movementList = new List<List<MemoryStream>>();
+
+        public static bool IsDPPT
+        {
+            get
+            {
+                return gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043;
+            }
+        }
+        public static bool IsHGSS
+        {
+            get
+            {
+                return gameID == 0x454B5049 || gameID == 0x45475049 || gameID == 0x534B5049 || gameID == 0x53475049 || gameID == 0x464B5049 || gameID == 0x46475049 || gameID == 0x494B5049 || gameID == 0x49475049 || gameID == 0x444B5049 || gameID == 0x44475049 || gameID == 0x4A4B5049 || gameID == 0x4A475049 || gameID == 0x4B4B5049 || gameID == 0x4B475049;
+            }
+        }
+        public static bool IsBW
+        {
+            get
+            {
+                return gameID == 0x4F425249 || gameID == 0x4F415249 || gameID == 0x53425249 || gameID == 0x53415249 || gameID == 0x46425249 || gameID == 0x46415249 || gameID == 0x49425249 || gameID == 0x49415249 || gameID == 0x44425249 || gameID == 0x44415249 || gameID == 0x4A425249 || gameID == 0x4A415249 || gameID == 0x4B425249 || gameID == 0x4B415249;
+            }
+        }
+        public static bool IsBW2
+        {
+            get
+            {
+                return gameID == 0x4F455249 || gameID == 0x4F445249 || gameID == 0x53455249 || gameID == 0x53445249 || gameID == 0x46455249 || gameID == 0x46445249 || gameID == 0x49455249 || gameID == 0x49445249 || gameID == 0x44455249 || gameID == 0x44445249 || gameID == 0x4A455249 || gameID == 0x4A445249 || gameID == 0x4B455249 || gameID == 0x4B445249;
+            }
+        }
         #endregion
 
         public Form1()
@@ -136,7 +156,7 @@ namespace WindowsFormsApplication1
 
         #region Basic Options
 
-        private void quitToolStripMenuItem_Click(object sender, EventArgs e) // Quit
+        private void QuitClick(object sender, EventArgs e) // Quit
         {
             if (MessageBox.Show(rm.GetString("sureQuit"), rm.GetString("warning"), MessageBoxButtons.YesNo, MessageBoxIcon.Information, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
@@ -144,7 +164,7 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void toolStripMenuItem1_Click(object sender, EventArgs e) // About
+        private void AboutClick(object sender, EventArgs e) // About
         {
             MessageBox.Show("Spiky's DS Map Editor\nVersion 1.8.1\n\nMade by Spiky-Eared Pichu/Markitus95\nSpecial thanks to Arc, who made the NARC API and helped me a lot with C#, and Zark, who helped me with the wild Pokémon editor and lots of data structures\n\n3D renderer and OBJ exporter based on MKDS Course Modifier by Florian", rm.GetString("about"), MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -153,71 +173,70 @@ namespace WindowsFormsApplication1
         {
             Program.gameID = gameID;
             Program.workingFolder = workingFolder;
-            Program.isBW = isBW;
-            Program.isB2W2 = isB2W2;
         }
 
-        private void editMapViewerColoursToolStripMenuItem_Click(object sender, EventArgs e) // Edit Map Colours
+        void EditMapColors(string path)
         {
-            Process.Start("notepad.exe", @"Data\ColorTable.txt");
+            Process.Start("notepad.exe", path);
         }
 
-        private void editMapViewerColoursToolStripMenuItem_ClickBW(object sender, EventArgs e) // Edit Map Colours
-        {
-            Process.Start("notepad.exe", @"Data\ColorTableBW.txt");
-        }
+        private void EditMapViewerColoursToolStripMenuItem_Click(object sender, EventArgs e) { EditMapColors(@"Data\ColorTable.txt"); }
+
+        private void EditMapViewerColoursToolStripMenuItem_ClickBW(object sender, EventArgs e) { EditMapColors(@"Data\ColorTableBW.txt"); }
+
 
         #endregion
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e) // Open ROM
+        private void OpenToolStripMenuItem_Click(object sender, EventArgs e) // Open ROM
         {
-            OpenFileDialog openNDS = new OpenFileDialog();
-            openNDS.Title = rm.GetString("selectROM");
-            openNDS.Filter = rm.GetString("ndsROM");
-            if (openNDS.ShowDialog() == DialogResult.OK)
+            OpenFileDialog openNDS = new OpenFileDialog
             {
-                tabControl1.TabPages.Remove(tabPage22);
-                tabControl1.TabPages.Remove(tabPage2);
-                tabControl1.TabPages.Remove(tabPage6);
-                tabControl1.TabPages.Remove(tabPage7);
-                tabControl1.TabPages.Remove(tabPage11);
-                tabControl1.TabPages.Remove(tabPage23);
-                tabControl1.TabPages.Remove(genVheaderTab);
-                tabControl1.TabPages.Remove(tabPage15);
-                tabControl1.TabPages.Remove(tabPage17);
-                Form1_FormClosed(null, null);
-                System.IO.BinaryReader read = new System.IO.BinaryReader(File.OpenRead(openNDS.FileName));
-                read.BaseStream.Position = 0xc;
-                gameID = (int)read.ReadUInt32();
-                read.Close();
-                button3.Enabled = true;
-                saveROMToolStripMenuItem.Enabled = true;
-                button19.Enabled = true;
-                button14.Enabled = true;
-                button21.Enabled = true;
-                radioButton14.Visible = false;
-                radioButton15.Visible = false;
-                numericUpDown7.Visible = false;
+                Title = rm.GetString("selectROM"),
+                Filter = rm.GetString("ndsROM")
+            };
+            if (openNDS.ShowDialog() != DialogResult.OK) return;
+            tabControl1.TabPages.Remove(tabPage22);
+            tabControl1.TabPages.Remove(tabPage2);
+            tabControl1.TabPages.Remove(tabPage6);
+            tabControl1.TabPages.Remove(tabPage7);
+            tabControl1.TabPages.Remove(tabPage11);
+            tabControl1.TabPages.Remove(tabPage23);
+            tabControl1.TabPages.Remove(genVheaderTab);
+            tabControl1.TabPages.Remove(tabPage15);
+            tabControl1.TabPages.Remove(tabPage17);
+            Form1_FormClosed(null, null);
+            BinaryReader read = new BinaryReader(File.OpenRead(openNDS.FileName));
+            read.BaseStream.Position = 0xc;
+            gameID = (int)read.ReadUInt32();
+            read.Close();
+            button3.Enabled = true;
+            saveROMToolStripMenuItem.Enabled = true;
+            button19.Enabled = true;
+            button14.Enabled = true;
+            button21.Enabled = true;
+            radioButton14.Visible = false;
+            radioButton15.Visible = false;
+            numericUpDown7.Visible = false;
+
+            Column11.MaxInputLength = 3;
+            Column12.MaxInputLength = 32767;
+            Column11.ReadOnly = false;
+            Column12.ReadOnly = true;
+
+            var rominfo = RomInfo.FindById(gameID);
+            label1.Text = rm.GetString(rominfo.game) + rm.GetString(rominfo.lang);
 
                 #region DP Support
-                Column11.MaxInputLength = 3;
-                Column12.MaxInputLength = 32767;
-                Column11.ReadOnly = false;
-                Column12.ReadOnly = true;
                 if (gameID == 0x45414441 || gameID == 0x45415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x45414441) label1.Text = rm.GetString("diamond") + rm.GetString("usa");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -390,7 +409,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -428,17 +447,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x53414441 || gameID == 0x53415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x53414441) label1.Text = rm.GetString("diamond") + rm.GetString("spa");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("spa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -461,9 +476,9 @@ namespace WindowsFormsApplication1
                     textCount = Directory.GetFiles(workingFolder + @"data\msgdata\msg").Length;
                     toolStripStatusLabel1.Text = rm.GetString("ready");
                     headerCount = 0;
-                    headerCount = new System.IO.FileInfo(workingFolder + @"data\fielddata\maptable\mapname.bin").Length / 16;
+                    headerCount = new FileInfo(workingFolder + @"data\fielddata\maptable\mapname.bin").Length / 16;
                     MessageBox.Show(rm.GetString("headersFound") + headerCount, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    System.IO.BinaryReader readArm9 = new System.IO.BinaryReader(File.OpenRead(workingFolder + @"arm9.bin"));
+                    BinaryReader readArm9 = new BinaryReader(File.OpenRead(workingFolder + @"arm9.bin"));
                     dataGridView1.Enabled = true;
                     readArm9.BaseStream.Position = 0xEEE08;
                     BinaryReader readMapTable = new BinaryReader(File.OpenRead(workingFolder + @"data\fielddata\maptable\mapname.bin"));
@@ -611,7 +626,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -649,17 +664,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x46414441 || gameID == 0x46415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x46414441) label1.Text = rm.GetString("diamond") + rm.GetString("fra");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("fra");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -833,7 +844,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -871,17 +882,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x49414441 || gameID == 0x49415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x49414441) label1.Text = rm.GetString("diamond") + rm.GetString("ita");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("ita");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -1055,7 +1062,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -1093,17 +1100,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x44414441 || gameID == 0x44415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x44414441) label1.Text = rm.GetString("diamond") + rm.GetString("ger");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("ger");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -1277,7 +1280,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -1315,17 +1318,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4A414441 || gameID == 0x4A415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x4A414441) label1.Text = rm.GetString("diamond") + rm.GetString("jap");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("jap");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -1499,7 +1498,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -1537,17 +1536,13 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4B414441 || gameID == 0x4B415041)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = false;
                     dataGridView1.Columns[18].Visible = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    if (gameID == 0x4B414441) label1.Text = rm.GetString("diamond") + rm.GetString("kor");
-                    else label1.Text = rm.GetString("pearl") + rm.GetString("kor");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -1721,7 +1716,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -1763,8 +1758,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x45555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -1774,10 +1767,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -1950,7 +1942,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -1987,8 +1979,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x53555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -1998,10 +1988,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("spa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -2174,7 +2163,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -2211,8 +2200,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x46555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -2222,10 +2209,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("fra");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -2398,7 +2384,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -2435,8 +2421,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x49555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -2446,10 +2430,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("ita");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -2622,7 +2605,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -2659,8 +2642,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x44555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -2670,10 +2651,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("ger");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -2846,7 +2826,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -2883,8 +2863,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4A555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -2894,10 +2872,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("jap");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -3070,7 +3047,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -3107,8 +3084,6 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4B555043)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     dataGridView1.Columns[17].Visible = true;
                     dataGridView1.Columns[18].Visible = false;
                     dataGridView1.Columns[13].HeaderText = rm.GetString("nameFrame");
@@ -3118,10 +3093,9 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags");
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView1.Rows.Clear();
-                    label1.Text = rm.GetString("platinum") + rm.GetString("kor");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\fielddata\mapmatrix\map_matrix.narc").ExtractToFolder(workingFolder + @"data\fielddata\mapmatrix\map_matrix");
@@ -3294,7 +3268,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -3336,15 +3310,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x454B5049 || gameID == 0x45475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x454B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("usa");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -3531,7 +3501,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -3548,15 +3518,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x534B5049 || gameID == 0x53475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x534B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("spa");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("spa");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -3743,7 +3709,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -3760,15 +3726,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x464B5049 || gameID == 0x46475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x464B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("fra");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("fra");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -3955,7 +3917,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -3972,15 +3934,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x494B5049 || gameID == 0x49475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x494B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("ita");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("ita");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -4167,7 +4125,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -4184,15 +4142,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x444B5049 || gameID == 0x44475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x444B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("ger");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("ger");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -4379,7 +4333,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -4396,15 +4350,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4A4B5049 || gameID == 0x4A475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x4A4B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("jap");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("jap");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -4591,7 +4541,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -4608,15 +4558,11 @@ namespace WindowsFormsApplication1
                 if (gameID == 0x4B4B5049 || gameID == 0x4B475049)
                 {
                     Program.ApplicationExit(null, null);
-                    isBW = false;
-                    isB2W2 = false;
                     sPKPackagesToolStripMenuItem.Enabled = true;
                     dataGridView13.Rows.Clear();
-                    if (gameID == 0x4B4B5049) label1.Text = rm.GetString("heartgold") + rm.GetString("kor");
-                    else label1.Text = rm.GetString("soulsilver") + rm.GetString("kor");
                     ndsFileName = openNDS.FileName;
                     workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-                    loadLastRom();
+                    LoadLastRom();
                     iconON = true; pictureBox1.Refresh();
                     toolStripStatusLabel1.Text = rm.GetString("extractPackage");
                     Narc.Open(workingFolder + @"data\a\0\4\1").ExtractToFolder(workingFolder + @"data\a\0\4\matrix");
@@ -4803,7 +4749,7 @@ namespace WindowsFormsApplication1
                     tabControl1.TabPages.Add(tabPage11);
                     tabControl1.TabPages.Add(tabPage23);
                     comboBox1_SelectedIndexChanged(null, null);
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                     comboBox3.Items.Clear();
                     for (int i = 0; i < textCount; i++)
                     {
@@ -4820,102 +4766,10 @@ namespace WindowsFormsApplication1
                 #endregion
                 
                 #region BW Support
-                if (gameID == 0x4F425249) // Black USA
+                if (IsBW)
                 {
-                    label1.Text = rm.GetString("black") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x4F415249) // White USA
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("usa");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x53425249) // Black SPA
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("spa");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x53415249) // White SPA
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("spa");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x46425249) // Black FRA
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("fra");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x46415249) // White FRA
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("fra");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x49425249) // Black ITA
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("ita");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x49415249) // White ITA
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("ita");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x44425249) // Black GER
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("ger");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x44415249) // White GER
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("ger");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x4A425249) // Black JAP
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("jap");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x4A415249) // White JAP
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("jap");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x4B425249) // Black KOR
-                {
-                    label1.Text = rm.GetString("black") + rm.GetString("kor");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
-                    return;
-                }
-                if (gameID == 0x4B415249) // White KOR
-                {
-                    label1.Text = rm.GetString("white") + rm.GetString("kor");
-                    ndsFileName = openNDS.FileName;
-                    loadBW();
+                    LoadBW();
                     return;
                 }
                 #endregion
@@ -4925,98 +4779,98 @@ namespace WindowsFormsApplication1
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x4F445249) // White 2 USA
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("usa");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x53455249) // Black 2 SPA
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("spa");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x53445249) // White 2 SPA
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("spa");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x46455249) // Black 2 FRA
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("fra");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x46445249) // White 2 FRA
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("fra");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x49455249) // Black 2 ITA
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("ita");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x49445249) // White 2 ITA
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("ita");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x44455249) // Black 2 GER
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("ger");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x44445249) // White 2 GER
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("ger");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x4A455249) // Black 2 JAP
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("jap");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x4A445249) // White 2 JAP
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("jap");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x4B455249) // Black 2 KOR
                 {
                     label1.Text = rm.GetString("black2") + rm.GetString("kor");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 if (gameID == 0x4B445249) // White 2 KOR
                 {
                     label1.Text = rm.GetString("white2") + rm.GetString("kor");
                     ndsFileName = openNDS.FileName;
-                    loadB2W2();
+                    LoadB2W2();
                     return;
                 }
                 #endregion
@@ -5026,7 +4880,7 @@ namespace WindowsFormsApplication1
                 button19.Enabled = false;
                 button14.Enabled = false;
                 button21.Enabled = false;
-                if (isBW || isB2W2)
+                if (IsBW || IsBW2)
                 {
                     tabControl1.TabPages.Add(genVheaderTab);
                     tabControl1.TabPages.Add(tabPage15);
@@ -5041,7 +4895,7 @@ namespace WindowsFormsApplication1
                 }
                 if (comboBox2.SelectedIndex != -1)
                 {
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043) tabControl1.TabPages.Add(tabPage22);
+                    if (IsDPPT) tabControl1.TabPages.Add(tabPage22);
                     else tabControl1.TabPages.Add(tabPage1);
                     tabControl1.TabPages.Add(tabPage2);
                     tabControl1.TabPages.Add(tabPage6);
@@ -5069,18 +4923,17 @@ namespace WindowsFormsApplication1
                     dataGridView1.Columns[16].HeaderText = rm.GetString("nameStyle");
                     dataGridView1.Columns[17].HeaderText = rm.GetString("flags"); 
                 }
-                return;
-            }
         }
 
-        private void saveROMToolStripMenuItem_Click(object sender, EventArgs e) // Save ROM
+        private void SaveROMToolStripMenuItem_Click(object sender, EventArgs e) // Save ROM
         {
-            SaveFileDialog saveNDS = new SaveFileDialog();
-            saveNDS.Title = rm.GetString("romSaveTitle");
-            saveNDS.Filter = rm.GetString("ndsROM");
-            saveNDS.FileName = Path.GetFileNameWithoutExtension(ndsFileName);
-            if (saveNDS.ShowDialog() == DialogResult.OK)
+            SaveFileDialog saveNDS = new SaveFileDialog
             {
+                Title = rm.GetString("romSaveTitle"),
+                Filter = rm.GetString("ndsROM"),
+                FileName = Path.GetFileNameWithoutExtension(ndsFileName)
+            };
+            if (saveNDS.ShowDialog() != DialogResult.OK) return;
                 if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4B414441 || gameID == 0x4B415041)
                 {
                     toolStripStatusLabel1.Text = rm.GetString("savingRom");
@@ -5254,7 +5107,7 @@ namespace WindowsFormsApplication1
                     decompress.WaitForExit();
                     toolStripStatusLabel1.Text = rm.GetString("ready");
                 }
-                if (isBW == true)
+                if (IsBW == true)
                 {
                     toolStripStatusLabel1.Text = rm.GetString("savingRom");
                     Narc.FromFolder(workingFolder + @"data\a\0\0\maps\").Save(workingFolder + @"data\a\0\0\8");
@@ -5294,7 +5147,7 @@ namespace WindowsFormsApplication1
                     Narc.Open(workingFolder + @"data\a\0\5\7").ExtractToFolder(workingFolder + @"data\a\0\5\scripts");
                     toolStripStatusLabel1.Text = rm.GetString("ready");
                 }
-                if (isB2W2 == true)
+                if (IsBW2 == true)
                 {
                     toolStripStatusLabel1.Text = rm.GetString("savingRom");
                     Narc.FromFolder(workingFolder + @"data\a\0\0\maps\").Save(workingFolder + @"data\a\0\0\8");
@@ -5334,14 +5187,11 @@ namespace WindowsFormsApplication1
                     Narc.Open(workingFolder + @"data\a\0\5\6").ExtractToFolder(workingFolder + @"data\a\0\5\scripts");
                     toolStripStatusLabel1.Text = rm.GetString("ready");
                 }
-            }
         }
 
-        private void loadBW() // Initialize BW
+        private void LoadBW() // Initialize BW
         {
             Program.ApplicationExit(null, null);
-            isBW = true;
-            isB2W2 = false;
             tabControl1.TabPages.Remove(tabPage1);
             tabControl1.TabPages.Remove(tabPage22);
             tabControl1.TabPages.Remove(tabPage2);
@@ -5364,7 +5214,7 @@ namespace WindowsFormsApplication1
             dataGridViewTextBoxColumn30.MaxInputLength = 5;
             Column47.Visible = false;
             workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-            loadLastRom();
+            LoadLastRom();
             iconON = true; pictureBox1.Refresh();
             toolStripStatusLabel1.Text = rm.GetString("extractPackage");
             Narc.Open(workingFolder + @"data\a\0\0\8").ExtractToFolder(workingFolder + @"data\a\0\0\maps");
@@ -5519,11 +5369,9 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void loadB2W2() // Initialize B2W2
+        private void LoadB2W2() // Initialize B2W2
         {
             Program.ApplicationExit(null, null);
-            isBW = false;
-            isB2W2 = true;
             tabControl1.TabPages.Remove(tabPage1);
             tabControl1.TabPages.Remove(tabPage22);
             tabControl1.TabPages.Remove(tabPage2);
@@ -5546,7 +5394,7 @@ namespace WindowsFormsApplication1
             dataGridViewTextBoxColumn30.MaxInputLength = 3;
             Column47.Visible = true;
             workingFolder = Path.GetDirectoryName(ndsFileName) + "\\" + Path.GetFileNameWithoutExtension(ndsFileName) + "_SDSME" + "\\";
-            loadLastRom();
+            LoadLastRom();
             iconON = true; pictureBox1.Refresh();
             toolStripStatusLabel1.Text = rm.GetString("extractPackage");
             Narc.Open(workingFolder + @"data\a\0\0\8").ExtractToFolder(workingFolder + @"data\a\0\0\maps");
@@ -5560,7 +5408,7 @@ namespace WindowsFormsApplication1
             Narc.Open(workingFolder + @"data\a\0\5\6").ExtractToFolder(workingFolder + @"data\a\0\5\scripts");
             if (new FileInfo(workingFolder + @"arm9.bin").Length < 0xA0000)
             {
-                System.IO.BinaryWriter arm9Truncate = new System.IO.BinaryWriter(File.OpenWrite(workingFolder + @"arm9.bin"));
+                BinaryWriter arm9Truncate = new BinaryWriter(File.OpenWrite(workingFolder + @"arm9.bin"));
                 long arm9Length = new FileInfo(workingFolder + @"arm9.bin").Length;
                 arm9Truncate.BaseStream.SetLength(arm9Length - 0xc);
                 arm9Truncate.Close();
@@ -5568,7 +5416,7 @@ namespace WindowsFormsApplication1
             Process decompress = new Process();
             decompress.StartInfo.FileName = @"Data\blz.exe";
             decompress.StartInfo.Arguments = @" -d " + '"' + workingFolder + "arm9.bin" + '"';
-            decompress.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            decompress.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             decompress.StartInfo.CreateNoWindow = true;
             decompress.Start();
             decompress.WaitForExit();
@@ -5643,7 +5491,7 @@ namespace WindowsFormsApplication1
             }
             readText.Close();
             #endregion
-            System.IO.BinaryReader readHeader = new System.IO.BinaryReader(File.OpenRead(workingFolder + @"data\a\0\1\headers\0000"));
+            BinaryReader readHeader = new BinaryReader(File.OpenRead(workingFolder + @"data\a\0\1\headers\0000"));
             for (int i = 0; i < headerCount; i++)
             {
                 dataGridView7.Rows.Add("", readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadUInt16(), readHeader.ReadUInt16(), nameText[readHeader.ReadByte()], readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadUInt16(), readHeader.ReadByte(), readHeader.ReadByte(), readHeader.ReadUInt32(), readHeader.ReadUInt32(), readHeader.ReadUInt32()); // Adds header data to grid
@@ -5701,7 +5549,7 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private void loadLastRom() // Load Last ROM
+        private void LoadLastRom() // Load Last ROM
         {
             if (Directory.Exists(workingFolder))
             {
@@ -5720,7 +5568,7 @@ namespace WindowsFormsApplication1
             unpack.StartInfo.FileName = @"Data\ndstool.exe";
             unpack.StartInfo.Arguments = "-v -x " + '"' + ndsFileName + '"' + " -9 " + '"' + workingFolder + "arm9.bin" + '"' + " -7 " + '"' + workingFolder + "arm7.bin" + '"' + " -y9 " + '"' + workingFolder + "y9.bin" + '"' + " -y7 " + '"' + workingFolder + "y7.bin" + '"' + " -d " + '"' + workingFolder + "data" + '"' + " -y " + '"' + workingFolder + "overlay" + '"' + " -t " + '"' + workingFolder + "banner.bin" + '"' + " -h " + '"' + workingFolder + "header.bin" + '"';
             Application.DoEvents();
-            unpack.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            unpack.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             unpack.StartInfo.CreateNoWindow = true;
             unpack.Start();
             toolStripStatusLabel1.Text = rm.GetString("loadingROM");
@@ -5754,7 +5602,7 @@ namespace WindowsFormsApplication1
         private void button1_Click(object sender, EventArgs e) // Save Headers
         {
             #region BW Support
-            if (isBW == true)
+            if (IsBW == true)
             {
                 toolStripStatusLabel1.Text = rm.GetString("writingHeaders");
                 BinaryWriter writeHeaders = new BinaryWriter(File.Create(workingFolder + @"data\a\0\1\headers\0000"));
@@ -5794,7 +5642,7 @@ namespace WindowsFormsApplication1
             #endregion
 
             #region B2W2 Support
-            if (isB2W2 == true)
+            if (IsBW2 == true)
             {
                 toolStripStatusLabel1.Text = rm.GetString("writingHeaders");
                 BinaryWriter writeHeaders = new BinaryWriter(File.Create(workingFolder + @"data\a\0\1\headers\0000"));
@@ -6553,7 +6401,7 @@ namespace WindowsFormsApplication1
             int zCoord = 0;
             for (int z = 0; z < newHeaderCount; z++)
             {
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                if (IsDPPT)
                 {
                     writeMapNames.Write(Encoding.UTF8.GetBytes(Convert.ToString(dataGridView1.Rows[zCoord].Cells[1].Value)));
                     for (int i = 0; i < 16 - (dataGridView1.Rows[zCoord].Cells[1].Value.ToString().Length); i++)
@@ -6716,7 +6564,7 @@ namespace WindowsFormsApplication1
                 {
                     bldTexturesCount++;
                     string packPath;
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         File.Copy(ef.FileName, workingFolder + @"data\fielddata\areadata\area_build_model\areabm_texset" + "\\" + comboBox13.Items.Count.ToString("D4"), true);
                         packPath = workingFolder + @"data\fielddata\areadata\area_build_model\area_build";
@@ -7229,7 +7077,7 @@ namespace WindowsFormsApplication1
 
         private void dataGridView7_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (isBW == true)
+            if (IsBW == true)
             {
                 if (e.ColumnIndex == dataGridView7.Columns[3].Index || e.ColumnIndex == dataGridView7.Columns[4].Index || e.ColumnIndex == dataGridView7.Columns[5].Index || e.ColumnIndex == dataGridView7.Columns[6].Index || e.ColumnIndex == dataGridView7.Columns[7].Index || e.ColumnIndex == dataGridView7.Columns[8].Index || e.ColumnIndex == dataGridView7.Columns[9].Index || e.ColumnIndex == dataGridView7.Columns[10].Index || e.ColumnIndex == dataGridView7.Columns[11].Index || e.ColumnIndex == dataGridView7.Columns[12].Index || e.ColumnIndex == dataGridView7.Columns[14].Index || e.ColumnIndex == dataGridView7.Columns[15].Index || e.ColumnIndex == dataGridView7.Columns[22].Index || e.ColumnIndex == dataGridView7.Columns[25].Index || e.ColumnIndex == dataGridView7.Columns[26].Index || e.ColumnIndex == dataGridView7.Columns[27].Index)
                 {
@@ -7252,7 +7100,7 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
-            if (isB2W2 == true)
+            if (IsBW2 == true)
             {
                 if (e.ColumnIndex == dataGridView7.Columns[3].Index || e.ColumnIndex == dataGridView7.Columns[4].Index || e.ColumnIndex == dataGridView7.Columns[5].Index || e.ColumnIndex == dataGridView7.Columns[6].Index || e.ColumnIndex == dataGridView7.Columns[7].Index || e.ColumnIndex == dataGridView7.Columns[8].Index || e.ColumnIndex == dataGridView7.Columns[9].Index || e.ColumnIndex == dataGridView7.Columns[10].Index || e.ColumnIndex == dataGridView7.Columns[11].Index || e.ColumnIndex == dataGridView7.Columns[12].Index || e.ColumnIndex == dataGridView7.Columns[14].Index || e.ColumnIndex == dataGridView7.Columns[15].Index || e.ColumnIndex == dataGridView7.Columns[22].Index || e.ColumnIndex == dataGridView7.Columns[23].Index || e.ColumnIndex == dataGridView7.Columns[24].Index || e.ColumnIndex == dataGridView7.Columns[25].Index || e.ColumnIndex == dataGridView7.Columns[26].Index || e.ColumnIndex == dataGridView7.Columns[27].Index)
                 {
@@ -7378,13 +7226,13 @@ namespace WindowsFormsApplication1
 
         #region Map Editor
 
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e) // Select Map
+        private void ComboBox2_SelectedIndexChanged(object sender, EventArgs e) // Select Map
         {
             dataGridView5.Rows.Clear();
             saveModeON = false;
             mapIndex = comboBox2.SelectedIndex;
             toolStripStatusLabel1.Text = rm.GetString("readingMap");
-            System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
+            BinaryReader readMap = new BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
             permissionSize = (readMap.ReadByte() + (readMap.ReadByte() << 8) + (readMap.ReadByte() << 16) + (readMap.ReadByte() << 24)); // Read Move Permissions Section Size
             buildingsSize = (readMap.ReadByte() + (readMap.ReadByte() << 8) + (readMap.ReadByte() << 16) + (readMap.ReadByte() << 24)); // Read Buildings Section Size
             modelSize = (readMap.ReadByte() + (readMap.ReadByte() << 8) + (readMap.ReadByte() << 16) + (readMap.ReadByte() << 24)); // Read BMD0 Section Size
@@ -7433,7 +7281,7 @@ namespace WindowsFormsApplication1
                 zCoord++;
                 xCoord = 0;
             }
-            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+            if (IsDPPT)
             {
                 readMap.BaseStream.Position = 0x10; // Jumps to start of permission section
                 modelTileset = workingFolder + @"data\fielddata\areadata\area_map_tex\map_tex_set";
@@ -7475,7 +7323,7 @@ namespace WindowsFormsApplication1
             return;
         }
 
-        private void comboBox8_SelectedIndexChanged(object sender, EventArgs e) // Gen V Select Map
+        private void ComboBox8_SelectedIndexChanged(object sender, EventArgs e) // Gen V Select Map
         {
             toolStripStatusLabel1.Text = rm.GetString("readingMap");
             button40.Enabled = true;
@@ -7543,7 +7391,7 @@ namespace WindowsFormsApplication1
                     dataGridView9.Rows.Add(); // Creates 32x32 grid
                     dataGridView9.Rows[i].ReadOnly = false;
                 }
-                changeLayer(null, null);
+                ChangeLayer(null, null);
             }
             toolStripStatusLabel1.Text = rm.GetString("ready");
 
@@ -7561,7 +7409,7 @@ namespace WindowsFormsApplication1
             comboBox7_SelectedIndexChanged(null, null);
         }
 
-        private void changeLayer(object sender, EventArgs e) // Gen V Change Layer
+        private void ChangeLayer(object sender, EventArgs e) // Gen V Change Layer
         {
             saveModeON = false;
             mapRAM.Position = 0x0;
@@ -7604,7 +7452,7 @@ namespace WindowsFormsApplication1
             saveModeON = true;
         }
 
-        private void checkBox5_CheckedChanged(object sender, EventArgs e) // Gen V Change to Secondary
+        private void CheckBox5_CheckedChanged(object sender, EventArgs e) // Gen V Change to Secondary
         {
             if (checkBox5.Enabled)
             {
@@ -7618,7 +7466,7 @@ namespace WindowsFormsApplication1
                     mapRAM.Write(bytes, 0, 8192);
                     mapRAM.Position = 0x0;
                     readMap.Close();
-                    changeLayer(null, null);
+                    ChangeLayer(null, null);
                 }
                 else
                 {
@@ -7630,12 +7478,12 @@ namespace WindowsFormsApplication1
                     mapRAM.Write(bytes, 0, 8192);
                     mapRAM.Position = 0x0;
                     readMap.Close();
-                    changeLayer(null, null);
+                    ChangeLayer(null, null);
                 }
             }
         }
 
-        private void dataGridView5_SelectionChanged(object sender, EventArgs e)
+        private void DataGridView5_SelectionChanged(object sender, EventArgs e)
         {
             radioModeON = false;
             label5.Text = "X: " + Convert.ToString(dataGridView5.CurrentCellAddress.X + 1);
@@ -7644,7 +7492,7 @@ namespace WindowsFormsApplication1
             int secondByte = mapRAM.ReadByte();
             radioButton2.Enabled = true;
             radioButton6.Enabled = true;
-            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+            if (IsDPPT)
             {
                 radioButton2.Enabled = false; // Disable "Grass" for DPPt
                 radioButton6.Enabled = false;
@@ -7662,21 +7510,22 @@ namespace WindowsFormsApplication1
             radioModeON = true;
         }
 
-        private void dataGridView9_SelectionChanged(object sender, EventArgs e)
+        private void DataGridView9_SelectionChanged(object sender, EventArgs e)
         {
             label15.Text = "X: " + Convert.ToString(dataGridView9.CurrentCellAddress.X + 1);
             label14.Text = "Y: " + Convert.ToString(dataGridView9.CurrentCellAddress.Y + 1);
         }
 
-        private void button5_Click(object sender, EventArgs e) // Export Move Permissions
+        private void OnExportMovePermissionsClick(object sender, EventArgs e) // Export Move Permissions
         {
-            SaveFileDialog ef = new SaveFileDialog();
-            ef.Title = rm.GetString("exportMove");
-            ef.Filter = rm.GetString("moveFile");
-            if (ef.ShowDialog() == DialogResult.OK)
+            SaveFileDialog ef = new SaveFileDialog
             {
-                System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                Title = rm.GetString("exportMove"),
+                Filter = rm.GetString("moveFile")
+            };
+            if (ef.ShowDialog() != DialogResult.OK) return;
+            BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
+                if (IsDPPT)
                 {
                     readMap.BaseStream.Position = 0x10;
                 }
@@ -7684,7 +7533,7 @@ namespace WindowsFormsApplication1
                 {
                     readMap.BaseStream.Position = 0x14 + unknownSize;
                 }
-                System.IO.BinaryWriter export = new System.IO.BinaryWriter(File.OpenWrite(ef.FileName));
+            BinaryWriter export = new BinaryWriter(File.OpenWrite(ef.FileName));
                 string exportfilename;
                 exportfilename = ef.FileName;
                 export.BaseStream.Position = 0x00;
@@ -7696,20 +7545,20 @@ namespace WindowsFormsApplication1
                 }
                 export.Close();
                 readMap.Close();
-            }
         }
 
-        private void button40_Click(object sender, EventArgs e) // Gen V Export Move Permissions
+        private void OnGenVExportMovePermissionsClick(object sender, EventArgs e) // Gen V Export Move Permissions
         {
-            SaveFileDialog ef = new SaveFileDialog();
-            ef.Title = rm.GetString("exportMove");
-            ef.Filter = rm.GetString("moveFile");
-            if (ef.ShowDialog() == DialogResult.OK)
+            SaveFileDialog ef = new SaveFileDialog
             {
-                System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4")));
+                Title = rm.GetString("exportMove"),
+                Filter = rm.GetString("moveFile")
+            };
+            if (ef.ShowDialog() != DialogResult.OK) return;
+            BinaryReader readMap = new BinaryReader(File.OpenRead(workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4")));
                 if (!checkBox5.Checked) readMap.BaseStream.Position = vpermOffset;
                 else readMap.BaseStream.Position = vunknownOffset;
-                System.IO.BinaryWriter export = new System.IO.BinaryWriter(File.Create(ef.FileName));
+            BinaryWriter export = new BinaryWriter(File.Create(ef.FileName));
                 string exportfilename;
                 exportfilename = ef.FileName;
                 if (!checkBox5.Checked)
@@ -7728,7 +7577,6 @@ namespace WindowsFormsApplication1
                 }
                 export.Close();
                 readMap.Close();
-            }
         }
 
         private void button8_Click(object sender, EventArgs e) // Export Buildings
@@ -7739,7 +7587,7 @@ namespace WindowsFormsApplication1
             if (ef.ShowDialog() == DialogResult.OK)
             {
                 System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                if (IsDPPT)
                 {
                     readMap.BaseStream.Position = 0x10 + permissionSize;
                 }
@@ -7810,7 +7658,7 @@ namespace WindowsFormsApplication1
                     }
 
                     System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         readMap.BaseStream.Position = 0x10 + permissionSize + buildingsSize;
                     }
@@ -8028,7 +7876,7 @@ namespace WindowsFormsApplication1
             if (ef.ShowDialog() == DialogResult.OK)
             {
                 System.IO.BinaryReader readMap = new System.IO.BinaryReader(File.OpenRead(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                if (IsDPPT)
                 {
                     readMap.BaseStream.Position = 0x10 + permissionSize + buildingsSize + modelSize;
                 }
@@ -8069,7 +7917,7 @@ namespace WindowsFormsApplication1
                     System.IO.BinaryWriter write = new System.IO.BinaryWriter(File.OpenWrite(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited"));
                     readMap.BaseStream.Position = 0x0;
 
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         for (int i = 0; i < (0x10); i++)
                         {
@@ -8087,7 +7935,7 @@ namespace WindowsFormsApplication1
                     {
                         write.Write(permissionstream.ReadByte()); // Reads import file bytes and writes them to the main file
                     }
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         readMap.BaseStream.Position = 0x10 + permissionSize;
                     }
@@ -8104,7 +7952,7 @@ namespace WindowsFormsApplication1
                     permissionstream.Close();
                     File.Delete(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4"));
                     File.Move(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited", mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4"));
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                 }
                 else
                 {
@@ -8135,7 +7983,7 @@ namespace WindowsFormsApplication1
                     }
                     write.Close();
                     permissionstream.Close();
-                    comboBox8_SelectedIndexChanged(null, null);
+                    ComboBox8_SelectedIndexChanged(null, null);
                 }
                 else
                 {
@@ -8164,7 +8012,7 @@ namespace WindowsFormsApplication1
                     System.IO.BinaryWriter write = new System.IO.BinaryWriter(File.OpenWrite(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited"));
                     readMap.BaseStream.Position = 0x0;
 
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         for (int i = 0; i < (0x10) + permissionSize; i++)
                         {
@@ -8182,7 +8030,7 @@ namespace WindowsFormsApplication1
                     {
                         write.Write(buildingStream.ReadByte()); // Reads import file bytes and writes them to the main file
                     }
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         readMap.BaseStream.Position = 0x10 + permissionSize + buildingsSize;
                     }
@@ -8269,11 +8117,13 @@ namespace WindowsFormsApplication1
 
         private void button9_Click(object sender, EventArgs e) // Import NSBMD
         {
-            OpenFileDialog ifModel = new OpenFileDialog();
-            ifModel.Title = rm.GetString("importModel");
-            ifModel.Filter = rm.GetString("importModelFile");
-            if (ifModel.ShowDialog() == DialogResult.OK)
+            OpenFileDialog ifModel = new OpenFileDialog
             {
+                Title = rm.GetString("importModel"),
+                Filter = rm.GetString("importModelFile")
+            };
+            if (ifModel.ShowDialog() != DialogResult.OK) return;
+
                 System.IO.BinaryReader modelStream = new System.IO.BinaryReader(File.OpenRead(ifModel.FileName));
                 string importModel = ifModel.FileName;
                 long importnsbmdSize = new System.IO.FileInfo(ifModel.FileName).Length;
@@ -8286,7 +8136,7 @@ namespace WindowsFormsApplication1
                     System.IO.BinaryWriter write = new System.IO.BinaryWriter(File.OpenWrite(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited"));
                     readMap.BaseStream.Position = 0x0;
 
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         for (int i = 0; i < (0x10) + permissionSize + buildingsSize; i++)
                         {
@@ -8327,7 +8177,7 @@ namespace WindowsFormsApplication1
                         }
                     }
 
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         readMap.BaseStream.Position = 0x10 + permissionSize + buildingsSize + modelSize;
                     }
@@ -8347,14 +8197,13 @@ namespace WindowsFormsApplication1
                     modelStream.Close();
                     File.Delete(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4"));
                     File.Move(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited", mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4"));
-                    comboBox2_SelectedIndexChanged(null, null);
+                    ComboBox2_SelectedIndexChanged(null, null);
                 }
                 else
                 {
                     MessageBox.Show(rm.GetString("invalidFile"), null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     modelStream.Close();
                 }
-            }
         }
 
         private void button35_Click(object sender, EventArgs e) // Gen V Import NSBMD
@@ -8493,7 +8342,7 @@ namespace WindowsFormsApplication1
                     modelStream.Close();
                     File.Delete(workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4"));
                     File.Move(workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4") + "_edited", workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4"));
-                    comboBox8_SelectedIndexChanged(null, null);
+                    ComboBox8_SelectedIndexChanged(null, null);
                 }
                 else
                 {
@@ -8523,7 +8372,7 @@ namespace WindowsFormsApplication1
                     System.IO.BinaryWriter write = new System.IO.BinaryWriter(File.OpenWrite(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4") + "_edited"));
                     readMap.BaseStream.Position = 0x0;
 
-                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                    if (IsDPPT)
                     {
                         for (int i = 0; i < (0x10) + permissionSize + buildingsSize + modelSize; i++)
                         {
@@ -8651,7 +8500,7 @@ namespace WindowsFormsApplication1
                 if (radioButton10.Checked) mapRAM.WriteByte(Convert.ToByte(dataGridView9.CurrentCell.Value.ToString(), 16)); // Writes byte to map
                 else mapRAM.Position++;
                 if (radioButton11.Checked) mapRAM.WriteByte(Convert.ToByte(dataGridView9.CurrentCell.Value.ToString(), 16)); // Writes byte to map
-                changeLayer(null, null);
+                ChangeLayer(null, null);
             }
         }
 
@@ -8687,7 +8536,7 @@ namespace WindowsFormsApplication1
 
         private void button16_Click(object sender, EventArgs e) // Writes Permission stream to disk
         {
-            if (isBW == true || isB2W2 == true)
+            if (IsBW == true || IsBW2 == true)
             {
                 System.IO.BinaryWriter writePerm = new System.IO.BinaryWriter(File.OpenWrite(workingFolder + @"data\a\0\0\maps" + "\\" + comboBox8.SelectedIndex.ToString("D4")));
                 if (!checkBox5.Checked) writePerm.BaseStream.Position = vpermOffset + 4;
@@ -8698,7 +8547,7 @@ namespace WindowsFormsApplication1
                 return;
             }
             System.IO.BinaryWriter write = new System.IO.BinaryWriter(File.OpenWrite(mapFileName + "\\" + comboBox2.SelectedIndex.ToString("D4")));
-            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+            if (IsDPPT)
             {
                 write.BaseStream.Position = 0x10; // Jumps to start of permission section
             }
@@ -8801,20 +8650,20 @@ namespace WindowsFormsApplication1
                 comboBox3.SelectedIndex = Convert.ToInt32(dataGridView1.CurrentCell.Value);
                 return;
             }
-            if (dataGridView1.CurrentCellAddress.X == 10 && (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043))
+            if (dataGridView1.CurrentCellAddress.X == 10 && (IsDPPT))
             {
                 wildIndex = (int)Convert.ToUInt32(dataGridView1.CurrentCell.Value);
                 Form9 wildEditor = new Form9();
                 wildEditor.ShowDialog(this);
                 return;
             }
-            if (dataGridView1.CurrentCellAddress.X == 11 && (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043))
+            if (dataGridView1.CurrentCellAddress.X == 11 && (IsDPPT))
             {
                 tabControl1.SelectedIndex = 5;
                 comboBox10.SelectedIndex = Convert.ToInt32(dataGridView1.CurrentCell.Value);
                 return;
             }
-            if (dataGridView1.CurrentCellAddress.X == 12 && (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043))
+            if (dataGridView1.CurrentCellAddress.X == 12 && (IsDPPT))
             {
                 wildIndex = nameText.IndexOf(dataGridView1.CurrentCell.Value.ToString());
                 Form4_2 nameEditor = new Form4_2();
@@ -9072,7 +8921,7 @@ namespace WindowsFormsApplication1
         {
             get
             {
-                if (isBW || isB2W2)
+                if (IsBW || IsBW2)
                 {
                     return this.simpleOpenGlControl2;
                 }
@@ -9112,15 +8961,18 @@ namespace WindowsFormsApplication1
 
         private void button20_Click(object sender, EventArgs e) // Render 3D Model
         {
-            if (isBW || isB2W2)
+            Tao.Platform.Windows.SimpleOpenGlControl control;
+            if (IsBW || IsBW2)
             {
                 simpleOpenGlControl2.Invalidate();
                 simpleOpenGlControl2.MakeCurrent();
+                control = simpleOpenGlControl2;
             }
             else
             {
                 simpleOpenGlControl1.Invalidate();
                 simpleOpenGlControl1.MakeCurrent();
+                control = simpleOpenGlControl1;
             }
             Gl.glEnable(Gl.GL_RESCALE_NORMAL);
             Gl.glEnable(Gl.GL_COLOR_MATERIAL);
@@ -9135,16 +8987,10 @@ namespace WindowsFormsApplication1
             Gl.glAlphaFunc(Gl.GL_GREATER, 0f);
             Gl.glClearColor(51f / 255f, 51f / 255f, 51f / 255f, 1f);
             float aspect;
-            if (isBW || isB2W2)
-            {
-                Gl.glViewport(0, 0, simpleOpenGlControl2.Width, simpleOpenGlControl2.Height);
-                aspect = (float)simpleOpenGlControl2.Width / (float)simpleOpenGlControl2.Height;//(vp[2] - vp[0]) / (vp[3] - vp[1]);
-            }
-            else
-            {
-                Gl.glViewport(0, 0, simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
-                aspect = (float)simpleOpenGlControl1.Width / (float)simpleOpenGlControl1.Height;//(vp[2] - vp[0]) / (vp[3] - vp[1]);
-            }
+
+            Gl.glViewport(0, 0, control.Width, control.Height);
+            aspect = (float)control.Width / (float)control.Height;//(vp[2] - vp[0]) / (vp[3] - vp[1]);
+
             Gl.glMatrixMode(Gl.GL_PROJECTION);
             Gl.glLoadIdentity();
             Glu.gluPerspective(perspective, aspect, 0.02f, 1000000.0f);//0.02f, 32.0f);
@@ -9204,7 +9050,7 @@ namespace WindowsFormsApplication1
 
         private void simpleOpenGlControl1_Resize(object sender, EventArgs e) // Refresh 3D
         {
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 simpleOpenGlControl2.Invalidate();
             }
@@ -9646,11 +9492,11 @@ namespace WindowsFormsApplication1
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            listBox2.Items.Clear();
-            listBox3.Items.Clear();
+            MapTexturelistBox.Items.Clear();
+            MapPalettelistBox.Items.Clear();
             if (radioButton8.Checked == false)
             {
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                if (IsDPPT)
                 {
                     editorTileset = workingFolder + @"data\fielddata\areadata\area_map_tex\map_tex_set";
                 }
@@ -9661,7 +9507,7 @@ namespace WindowsFormsApplication1
             }
             else
             {
-                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                if (IsDPPT)
                 {
                     editorTileset = workingFolder + @"data\fielddata\areadata\area_build_model\areabm_texset";
                 }
@@ -9796,7 +9642,7 @@ namespace WindowsFormsApplication1
             for (int i = 0; i < nsbtx.TexInfo.num_objs; i++)
             {
                 nsbtx.TexInfo.names.Add(er.ReadString(Encoding.ASCII, 16).Replace("\0", ""));
-                listBox2.Items.Add(nsbtx.TexInfo.names[i]);
+                MapTexturelistBox.Items.Add(nsbtx.TexInfo.names[i]);
             }
 
             nsbtx.PalInfo.dummy = er.ReadByte();
@@ -9834,7 +9680,7 @@ namespace WindowsFormsApplication1
             for (int i = 0; i < nsbtx.PalInfo.num_objs; i++)
             {
                 nsbtx.PalInfo.names.Add(er.ReadString(Encoding.ASCII, 16).Replace("\0", ""));
-                listBox3.Items.Add(nsbtx.PalInfo.names[i]);
+                MapPalettelistBox.Items.Add(nsbtx.PalInfo.names[i]);
             }
             List<int> offsets = new List<int>();
             for (int i = 0; i < nsbtx.PalInfo.num_objs; i++)
@@ -9859,10 +9705,10 @@ namespace WindowsFormsApplication1
                 nsbtx.PalInfo.infoBlock.PalInfo[i].pal = c.ToArray();
             }
             er.Close();
-            listBox2.SelectedIndex = 0;
+            MapTexturelistBox.SelectedIndex = 0;
             if (nsbtx.PalInfo.num_objs != 0)
             {
-                listBox3.SelectedIndex = 0;
+                MapPalettelistBox.SelectedIndex = 0;
             }
         }
 
@@ -10086,7 +9932,7 @@ namespace WindowsFormsApplication1
 
         private void saveTilePNG_Click(object sender, EventArgs e)
         {
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 SaveFileDialog savePNG = new SaveFileDialog();
                 savePNG.Filter = "PNG (*.png)|*.png";
@@ -10100,7 +9946,7 @@ namespace WindowsFormsApplication1
             {
                 SaveFileDialog savePNG = new SaveFileDialog();
                 savePNG.Filter = "PNG (*.png)|*.png";
-                savePNG.FileName = nsbtx.TexInfo.names[listBox2.SelectedIndex];
+                savePNG.FileName = nsbtx.TexInfo.names[MapTexturelistBox.SelectedIndex];
                 if (savePNG.ShowDialog() == DialogResult.OK)
                 {
                     pictureBox2.Image.Save(savePNG.FileName, System.Drawing.Imaging.ImageFormat.Png);
@@ -10112,11 +9958,11 @@ namespace WindowsFormsApplication1
         {
             OpenFileDialog openPNG = new OpenFileDialog();
             openPNG.Filter = "PNG (*.png)|*.png";
-            openPNG.FileName = listBox2.SelectedItem.ToString() + ".png";
+            openPNG.FileName = MapTexturelistBox.SelectedItem.ToString() + ".png";
             if (openPNG.ShowDialog() == DialogResult.OK)
             {
-                int selectedTex = listBox2.SelectedIndex;
-                int selectedPal = listBox3.SelectedIndex;
+                int selectedTex = MapTexturelistBox.SelectedIndex;
+                int selectedPal = MapPalettelistBox.SelectedIndex;
                 Bitmap b = new Bitmap(openPNG.FileName);
                 NSMBe4.DSFileSystem.ExternalFilesystemSource f = new NSMBe4.DSFileSystem.ExternalFilesystemSource(editorTileset + "\\" + listBox1.SelectedIndex.ToString("D4"));
                 NSMBe4.DSFileSystem.Filesystem fs = new NSMBe4.DSFileSystem.Filesystem(f);
@@ -10125,66 +9971,72 @@ namespace WindowsFormsApplication1
                 {
                     return;
                 }
-                nsbtx.textures[listBox2.SelectedIndex].replaceImgAndPal(b, nsbtx.pal[listBox3.SelectedIndex]);
-                nsbtx.textures[listBox2.SelectedIndex].save();
-                nsbtx.pal[listBox3.SelectedIndex].save();
-                if (nsbtx.textures[listBox2.SelectedIndex].format == 5)
+                nsbtx.textures[MapTexturelistBox.SelectedIndex].replaceImgAndPal(b, nsbtx.pal[MapPalettelistBox.SelectedIndex]);
+                nsbtx.textures[MapTexturelistBox.SelectedIndex].save();
+                nsbtx.pal[MapPalettelistBox.SelectedIndex].save();
+                if (nsbtx.textures[MapTexturelistBox.SelectedIndex].format == 5)
                 {
-                    nsbtx.str.seek((int)nsbtx.textures[listBox2.SelectedIndex].offset - nsbtx.startoffset);
-                    nsbtx.str.write(nsbtx.textures[listBox2.SelectedIndex].getRawData());
-                    nsbtx.str.seek((int)nsbtx.textures[listBox2.SelectedIndex].offset5 - nsbtx.startoffset);
-                    nsbtx.str.write(nsbtx.textures[listBox2.SelectedIndex].getRawData5());
-                    nsbtx.str.seek((int)nsbtx.palettes[listBox3.SelectedIndex].offs - nsbtx.startoffset);
-                    nsbtx.str.write(nsbtx.pal[listBox3.SelectedIndex].getRawData());
+                    nsbtx.str.seek((int)nsbtx.textures[MapTexturelistBox.SelectedIndex].offset - nsbtx.startoffset);
+                    nsbtx.str.write(nsbtx.textures[MapTexturelistBox.SelectedIndex].getRawData());
+                    nsbtx.str.seek((int)nsbtx.textures[MapTexturelistBox.SelectedIndex].offset5 - nsbtx.startoffset);
+                    nsbtx.str.write(nsbtx.textures[MapTexturelistBox.SelectedIndex].getRawData5());
+                    nsbtx.str.seek((int)nsbtx.palettes[MapPalettelistBox.SelectedIndex].offs - nsbtx.startoffset);
+                    nsbtx.str.write(nsbtx.pal[MapPalettelistBox.SelectedIndex].getRawData());
                 }
                 else
                 {
-                    nsbtx.str.seek((int)nsbtx.textures[listBox2.SelectedIndex].offset - nsbtx.startoffset);
-                    nsbtx.str.write(nsbtx.textures[listBox2.SelectedIndex].getRawData());
-                    nsbtx.str.seek((int)nsbtx.palettes[listBox3.SelectedIndex].offs - nsbtx.startoffset);
-                    nsbtx.str.write(nsbtx.pal[listBox3.SelectedIndex].getRawData());
+                    nsbtx.str.seek((int)nsbtx.textures[MapTexturelistBox.SelectedIndex].offset - nsbtx.startoffset);
+                    nsbtx.str.write(nsbtx.textures[MapTexturelistBox.SelectedIndex].getRawData());
+                    nsbtx.str.seek((int)nsbtx.palettes[MapPalettelistBox.SelectedIndex].offs - nsbtx.startoffset);
+                    nsbtx.str.write(nsbtx.pal[MapPalettelistBox.SelectedIndex].getRawData());
                 }
                 File.WriteAllBytes(editorTileset + "\\" + listBox1.SelectedIndex.ToString("D4"), nsbtx.str.getData());
                 b.Dispose();
                 listBox1_SelectedIndexChanged(null, null);
-                listBox2.SelectedIndex = selectedTex;
-                listBox3.SelectedIndex = selectedPal;
+                MapTexturelistBox.SelectedIndex = selectedTex;
+                MapPalettelistBox.SelectedIndex = selectedPal;
             }
         }
 
-        private void listBox2_SelectedIndexChanged(object sender, EventArgs e) // Select Texture
+        private void OnSelectTexture(object sender, EventArgs e) // Select Texture
         {
-            Bitmap b_ = new Bitmap(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].height);
+            // also update the pallete if the synchronise checkbox is checked
+            if (LockTexPal.Checked)
+            {
+                MapPalettelistBox.SelectedIndex = Math.Min(MapPalettelistBox.Items.Count-1, MapTexturelistBox.SelectedIndex+(int)PalOffset.Value);
+            }
+
+            Bitmap b_ = new Bitmap(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].height);
             NSMBe4.NSBMD.ImageTexeler.LockBitmap b = new NSMBe4.NSBMD.ImageTexeler.LockBitmap(b_);
             b.LockBits();
             int pixelnum = b.Height * b.Width;
             try
             {
-                switch (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].format)
+                switch (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].format)
                 {
                     case 1:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            int index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] & 0x1f;
-                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] >> 5);
+                            int index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] & 0x1f;
+                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] >> 5);
                             alpha = ((alpha * 4) + (alpha / 2)) * 8;
-                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
                     case 2:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j / 4];
+                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j / 4];
                             index = (index >> ((j % 4) << 1)) & 3;
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
@@ -10194,15 +10046,15 @@ namespace WindowsFormsApplication1
                         //sp.PLTO[listBox1.SelectedIndex].Pal[sp.PLTO[listBox1.SelectedIndex].Unknown] = Color.Transparent; // made palette entry 0 transparent
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j / 2];
+                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j / 2];
                             index = (index >> ((j % 2) << 2)) & 0x0f;
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
@@ -10212,39 +10064,39 @@ namespace WindowsFormsApplication1
                         //if (mat.color0 != 0) mat.paldata[0] = RGBA.Transparent; // made palette entry 0 transparent
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            byte index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j];
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            byte index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j];
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
                         break;
                     case 5:
-                        convert_4x4texel_b(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].height, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].spData, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal, b);
+                        convert_4x4texel_b(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].height, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].spData, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal, b);
                         b.UnlockBits();
                         break;
                     case 6:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            int index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] & 0x7;
-                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] >> 3);// & 0x1f;
+                            int index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] & 0x7;
+                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] >> 3);// & 0x1f;
                             alpha *= 8;
-                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
                     case 7:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            UInt16 p = (ushort)(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j * 2] + (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j * 2 + 1] << 8));
+                            UInt16 p = (ushort)(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j * 2] + (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j * 2 + 1] << 8));
                             Color c = Color.FromArgb((((p & 0x8000) != 0) ? 0xff : 0), (((p >> 0) & 0x1f) << 3), (((p >> 5) & 0x1f) << 3), (((p >> 10) & 0x1f) << 3));
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
@@ -10255,44 +10107,44 @@ namespace WindowsFormsApplication1
                 b.UnlockBits();
             }
             pictureBox2.Image = b_;
-            textBox6.Text = nsbtx.TexInfo.names[listBox2.SelectedIndex];
-            if (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1) checkBox6.Checked = true;
+            textBox6.Text = nsbtx.TexInfo.names[MapTexturelistBox.SelectedIndex];
+            if (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1) checkBox6.Checked = true;
             else checkBox6.Checked = false;
         }
 
-        private void listBox3_SelectedIndexChanged(object sender, EventArgs e) // Select Palette
+        private void MapSelectPalette(object sender, EventArgs e) // Select Palette
         {
-            Bitmap b_ = new Bitmap(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].height);
+            Bitmap b_ = new Bitmap(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].height);
             NSMBe4.NSBMD.ImageTexeler.LockBitmap b = new NSMBe4.NSBMD.ImageTexeler.LockBitmap(b_);
             b.LockBits();
             int pixelnum = b.Height * b.Width;
             try
             {
-                switch (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].format)
+                switch (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].format)
                 {
                     case 1:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            int index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] & 0x1f;
-                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] >> 5);
+                            int index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] & 0x1f;
+                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] >> 5);
                             alpha = ((alpha * 4) + (alpha / 2)) * 8;
-                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
                     case 2:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j / 4];
+                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j / 4];
                             index = (index >> ((j % 4) << 1)) & 3;
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
@@ -10302,15 +10154,15 @@ namespace WindowsFormsApplication1
                         //sp.PLTO[listBox1.SelectedIndex].Pal[sp.PLTO[listBox1.SelectedIndex].Unknown] = Color.Transparent; // made palette entry 0 transparent
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j / 2];
+                            uint index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j / 2];
                             index = (index >> ((j % 2) << 2)) & 0x0f;
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
@@ -10320,39 +10172,39 @@ namespace WindowsFormsApplication1
                         //if (mat.color0 != 0) mat.paldata[0] = RGBA.Transparent; // made palette entry 0 transparent
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            byte index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j];
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            byte index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j];
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), Color.Transparent);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), Color.Transparent);
                             }
                             else
                             {
-                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
+                                b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
                             }
                         }
                         b.UnlockBits();
                         break;
                     case 5:
-                        convert_4x4texel_b(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].height, nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].spData, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal, b);
+                        convert_4x4texel_b(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].height, nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].spData, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal, b);
                         b.UnlockBits();
                         break;
                     case 6:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            int index = nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] & 0x7;
-                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j] >> 3);// & 0x1f;
+                            int index = nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] & 0x7;
+                            int alpha = (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j] >> 3);// & 0x1f;
                             alpha *= 8;
-                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[index]);
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            Color c = Color.FromArgb(alpha, nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[index]);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
                     case 7:
                         for (int j = 0; j < pixelnum; j++)
                         {
-                            UInt16 p = (ushort)(nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j * 2] + (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].Image[j * 2 + 1] << 8));
+                            UInt16 p = (ushort)(nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j * 2] + (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].Image[j * 2 + 1] << 8));
                             Color c = Color.FromArgb((((p & 0x8000) != 0) ? 0xff : 0), (((p >> 0) & 0x1f) << 3), (((p >> 5) & 0x1f) << 3), (((p >> 10) & 0x1f) << 3));
-                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].width), c);
+                            b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].width), c);
                         }
                         b.UnlockBits();
                         break;
@@ -10362,7 +10214,7 @@ namespace WindowsFormsApplication1
             {
                 b.UnlockBits();
             }
-            if (listBox3.SelectedIndex != -1)
+            if (MapPalettelistBox.SelectedIndex != -1)
             {
                 dataGridView11.Rows.Clear();
                 for (int i = 0; i < 16; i++)
@@ -10371,9 +10223,9 @@ namespace WindowsFormsApplication1
                 }
                 int cells = 0;
                 int rows = 0;
-                for (int i = 0; i < nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal.Count(); i++)
+                for (int i = 0; i < nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal.Count(); i++)
                 {
-                    dataGridView11.Rows[rows].Cells[cells].Style.BackColor = nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[i];
+                    dataGridView11.Rows[rows].Cells[cells].Style.BackColor = nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[i];
                     cells++;
                     if (cells == 16)
                     {
@@ -10382,7 +10234,7 @@ namespace WindowsFormsApplication1
                     }
                 }
                 dataGridView11.Rows[0].Cells[0].Selected = true;
-                textBox5.Text = nsbtx.PalInfo.names[listBox3.SelectedIndex];
+                textBox5.Text = nsbtx.PalInfo.names[MapPalettelistBox.SelectedIndex];
             }
             pictureBox2.Image = b_;
         }
@@ -10448,7 +10300,7 @@ namespace WindowsFormsApplication1
                         for (int j = 0; j < pixelnum; j++)
                         {
                             byte index = nsbtx.TexInfo.infoBlock.TexInfo[listBox5.SelectedIndex].Image[j];
-                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 == 1)
+                            if (index == 0 && nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 == 1)
                             {
                                 b.SetPixel(j - ((j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox5.SelectedIndex].width)) * (nsbtx.TexInfo.infoBlock.TexInfo[listBox5.SelectedIndex].width)), j / (nsbtx.TexInfo.infoBlock.TexInfo[listBox5.SelectedIndex].width), Color.Transparent);
                             }
@@ -10515,90 +10367,53 @@ namespace WindowsFormsApplication1
             pictureBox3.Image = b_;
         }
 
-        private void tilesetImport_Click(object sender, EventArgs e)
+        private void TilesetImport_Click(object sender, EventArgs e)
         {
-            if (isBW || isB2W2)
-            {
-                OpenFileDialog ef = new OpenFileDialog();
-                ef.Title = rm.GetString("importTileset");
-                ef.Filter = rm.GetString("tilesetFile");
-                if (ef.ShowDialog() == DialogResult.OK)
+            ListBox usingListbox = IsBW || IsBW ? listBox6 : listBox1;
+
+                OpenFileDialog ef = new OpenFileDialog
                 {
+                    Title = rm.GetString("importTileset"),
+                    Filter = rm.GetString("tilesetFile")
+                };
+                if (ef.ShowDialog() != DialogResult.OK) return;
+
                     System.IO.BinaryReader textureStream = new System.IO.BinaryReader(File.OpenRead(ef.FileName));
+
                     int header;
                     header = (int)textureStream.ReadUInt32();
                     textureStream.Close();
                     if (header == 811095106)
                     {
-                        File.Copy(ef.FileName, editorTileset + "\\" + listBox6.SelectedIndex.ToString("D4"), true);
-                        listBox6_SelectedIndexChanged(null, null);
+                        File.Copy(ef.FileName, editorTileset + "\\" + usingListbox.SelectedIndex.ToString("D4"), true);
+                        if (IsBW || IsBW) listBox6_SelectedIndexChanged(null, null); else listBox1_SelectedIndexChanged(null, null);
                     }
                     else
                     {
                         MessageBox.Show(rm.GetString("invalidFile"), null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     }
-                }
-                return;
-            }
-            else
-            {
-                OpenFileDialog ef = new OpenFileDialog();
-                ef.Title = rm.GetString("importTileset");
-                ef.Filter = rm.GetString("tilesetFile");
-                if (ef.ShowDialog() == DialogResult.OK)
-                {
-                    System.IO.BinaryReader textureStream = new System.IO.BinaryReader(File.OpenRead(ef.FileName));
-                    int header;
-                    header = (int)textureStream.ReadUInt32();
-                    textureStream.Close();
-                    if (header == 811095106)
-                    {
-                        File.Copy(ef.FileName, editorTileset + "\\" + listBox1.SelectedIndex.ToString("D4"), true);
-                        listBox1_SelectedIndexChanged(null, null);
-                    }
-                    else
-                    {
-                        MessageBox.Show(rm.GetString("invalidFile"), null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                    }
-                }
-                return;
-            }
         }
 
-        private void tilesetExport_Click(object sender, EventArgs e)
+        private void TilesetExport_Click(object sender, EventArgs e)
         {
-            if (isBW || isB2W2)
-            {
-                SaveFileDialog ef = new SaveFileDialog();
-                ef.Title = rm.GetString("exportTileset");
-                ef.Filter = rm.GetString("tilesetFile");
-                if (ef.ShowDialog() == DialogResult.OK)
+                SaveFileDialog ef = new SaveFileDialog
                 {
-                    File.Copy(editorTileset + "\\" + listBox6.SelectedIndex.ToString("D4"), ef.FileName, true);
-                }
-                return;
-            }
-            else
-            {
-                SaveFileDialog ef = new SaveFileDialog();
-                ef.Title = rm.GetString("exportTileset");
-                ef.Filter = rm.GetString("tilesetFile");
-                if (ef.ShowDialog() == DialogResult.OK)
-                {
-                    File.Copy(editorTileset + "\\" + listBox1.SelectedIndex.ToString("D4"), ef.FileName, true);
-                }
-                return;
-            }
+                    Title = rm.GetString("exportTileset"),
+                    Filter = rm.GetString("tilesetFile")
+                };
+                if (ef.ShowDialog() != DialogResult.OK) return;
+                File.Copy(editorTileset + "\\" + (IsBW || IsBW2 ? listBox6 : listBox1).SelectedIndex.ToString("D4"), ef.FileName, true);
         }
 
         private void button15_Click_1(object sender, EventArgs e) // Add new tileset
         {
-            OpenFileDialog ef = new OpenFileDialog();
-            ef.Title = rm.GetString("importTileset");
-            ef.Filter = rm.GetString("tilesetFile");
-            if (ef.ShowDialog() == DialogResult.OK)
+            OpenFileDialog ef = new OpenFileDialog
             {
-                System.IO.BinaryReader textureStream = new System.IO.BinaryReader(File.OpenRead(ef.FileName));
+                Title = rm.GetString("importTileset"),
+                Filter = rm.GetString("tilesetFile")
+            };
+            if (ef.ShowDialog() != DialogResult.OK) return;
+                BinaryReader textureStream = new BinaryReader(File.OpenRead(ef.FileName));
                 int header;
                 header = (int)textureStream.ReadUInt32();
                 textureStream.Close();
@@ -10614,13 +10429,11 @@ namespace WindowsFormsApplication1
                 {
                     MessageBox.Show(rm.GetString("invalidFile"), null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
-            }
-            return;
         }
 
         private void radioButton8_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton8.Checked == true)
+            if (radioButton8.Checked)
             {
                 listBox1.Items.Clear();
                 for (int i = 0; i < bldTexturesCount; i++)
@@ -10644,19 +10457,10 @@ namespace WindowsFormsApplication1
 
         private void radioButton17_CheckedChanged(object sender, EventArgs e) // Gen V
         {
-            if (radioButton17.Checked == true)
+            if (radioButton17.Checked == true || radioButton23.Checked == true)
             {
                 listBox6.Items.Clear();
                 for (int i = 0; i < bldTexturesCount; i++)
-                {
-                    listBox6.Items.Add(rm.GetString("buildingPackList") + i);
-                }
-                listBox6.SelectedIndex = 0;
-            }
-            else if (radioButton23.Checked == true)
-            {
-                listBox6.Items.Clear();
-                for (int i = 0; i < bld2TexturesCount; i++)
                 {
                     listBox6.Items.Add(rm.GetString("buildingPackList") + i);
                 }
@@ -10830,7 +10634,7 @@ namespace WindowsFormsApplication1
             write.Close();
         }
 
-        private void saveNSBTX() // Save NSBTX
+        private void SaveNSBTX() // Save NSBTX
         {
             BinaryWriter write = new BinaryWriter(File.Create(editorTileset + "\\" + listBox1.SelectedIndex.ToString("D4")));
             write.Write(0x30585442); // BTX0
@@ -11055,39 +10859,39 @@ namespace WindowsFormsApplication1
 
         private void button44_Click(object sender, EventArgs e) // Save Current Palette
         {
-            nsbtx.PalInfo.names[listBox3.SelectedIndex] = textBox5.Text;
-            if (checkBox6.Checked == true) nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 = 0;
-            else nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 = 1;
+            nsbtx.PalInfo.names[MapPalettelistBox.SelectedIndex] = textBox5.Text;
+            if (checkBox6.Checked == true) nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 = 0;
+            else nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 = 1;
             int columns = 0;
-            for (int i = 0; i < nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal.Length; i++)
+            for (int i = 0; i < nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal.Length; i++)
             {
-                nsbtx.PalInfo.infoBlock.PalInfo[listBox3.SelectedIndex].pal[i] = dataGridView11.Rows[i / 16].Cells[columns].Style.BackColor;
+                nsbtx.PalInfo.infoBlock.PalInfo[MapPalettelistBox.SelectedIndex].pal[i] = dataGridView11.Rows[i / 16].Cells[columns].Style.BackColor;
                 columns++;
                 if (columns == 16) columns = 0;
             }
-            int current = listBox3.SelectedIndex;
+            int current = MapPalettelistBox.SelectedIndex;
             //int y = dataGridView11.CurrentCell.RowIndex;
             //int x = dataGridView11.CurrentCell.ColumnIndex;
-            listBox3.Items.RemoveAt(current);
-            listBox3.Items.Insert(current, nsbtx.PalInfo.names[current]);
-            listBox3.SelectedIndex = current;
+            MapPalettelistBox.Items.RemoveAt(current);
+            MapPalettelistBox.Items.Insert(current, nsbtx.PalInfo.names[current]);
+            MapPalettelistBox.SelectedIndex = current;
             //dataGridView11.Rows[y].Cells[x].Selected = true;
-            saveNSBTX();
+            SaveNSBTX();
         }
 
         private void button48_Click(object sender, EventArgs e) // Save Current Texture
         {
-            nsbtx.TexInfo.names[listBox2.SelectedIndex] = textBox6.Text;
-            if (checkBox6.Checked == true) nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 = 1;
-            else nsbtx.TexInfo.infoBlock.TexInfo[listBox2.SelectedIndex].color0 = 0;
-            int current = listBox3.SelectedIndex;
+            nsbtx.TexInfo.names[MapTexturelistBox.SelectedIndex] = textBox6.Text;
+            if (checkBox6.Checked == true) nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 = 1;
+            else nsbtx.TexInfo.infoBlock.TexInfo[MapTexturelistBox.SelectedIndex].color0 = 0;
+            int current = MapPalettelistBox.SelectedIndex;
             //int y = dataGridView11.CurrentCell.RowIndex;
             //int x = dataGridView11.CurrentCell.ColumnIndex;
-            listBox3.Items.RemoveAt(current);
-            listBox3.Items.Insert(current, nsbtx.PalInfo.names[current]);
-            listBox3.SelectedIndex = current;
+            MapPalettelistBox.Items.RemoveAt(current);
+            MapPalettelistBox.Items.Insert(current, nsbtx.PalInfo.names[current]);
+            MapPalettelistBox.SelectedIndex = current;
             //dataGridView11.Rows[y].Cells[x].Selected = true;
-            saveNSBTX();
+            SaveNSBTX();
         }
 
         #endregion
@@ -11106,7 +10910,7 @@ namespace WindowsFormsApplication1
             saveStringBtn.Enabled = true;
             button18.Enabled = true;
             button20.Enabled = true;
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 Column36.HeaderText = "1";
                 Column50.Visible = true;
@@ -11588,7 +11392,7 @@ namespace WindowsFormsApplication1
 
         private void saveStringBtn_Click(object sender, EventArgs e) // Save Text File
         {
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 saveTextV();
                 return;
@@ -11943,7 +11747,7 @@ namespace WindowsFormsApplication1
             #endregion
             writeText.Close();
             #region Name List Updates
-            if (comboBox3.SelectedIndex == 89 && radioButton14.Checked && isBW) // BW Place Names
+            if (comboBox3.SelectedIndex == 89 && radioButton14.Checked && IsBW) // BW Place Names
             {
                 int[] index = new int[dataGridView7.RowCount];
                 for (int i = 0; i < dataGridView7.RowCount; i++)
@@ -11960,7 +11764,7 @@ namespace WindowsFormsApplication1
                     dataGridView7.Rows[i].Cells[16].Value = nameText[index[i]];
                 }
             }
-            if (comboBox3.SelectedIndex == 109 && radioButton14.Checked && isB2W2) // B2W2 Place Names
+            if (comboBox3.SelectedIndex == 109 && radioButton14.Checked && IsBW2) // B2W2 Place Names
             {
                 int[] index = new int[dataGridView7.RowCount];
                 for (int i = 0; i < dataGridView7.RowCount; i++)
@@ -12883,13 +12687,13 @@ namespace WindowsFormsApplication1
 
         private void comboBox5_SelectedIndexChanged(object sender, EventArgs e) // Read Script File
         {
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 readScriptGenV();
                 return;
             }
             #region RM
-            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+            if (IsDPPT)
             {
                 scriptData = new ResourceManager("WindowsFormsApplication1.Resources.Scripts", Assembly.GetExecutingAssembly());
                 scriptName = new ResourceManager("WindowsFormsApplication1.Resources.ScriptNames", Assembly.GetExecutingAssembly());
@@ -13097,7 +12901,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (currentCmd == 0x021D)
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     Int16 param = readScript.ReadInt16();
                                     load.Write((Int16)param);
@@ -13143,7 +12947,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (currentCmd == 0x023E)
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     Int16 param = readScript.ReadInt16();
                                     load.Write((Int16)param);
@@ -13334,7 +13138,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (currentCmd == 0x021D)
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         int param = readScript.ReadInt16();
                                         load.Write((Int16)param);
@@ -13380,7 +13184,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (currentCmd == 0x023E)
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         int param = readScript.ReadInt16();
                                         load.Write((Int16)param);
@@ -13641,7 +13445,7 @@ namespace WindowsFormsApplication1
                     }
                     else if (currentCmd == 0x021D)
                     {
-                        if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                        if (IsDPPT)
                         {
                             int param = readFunction.ReadInt16();
                             if (param != 0x6)
@@ -13684,7 +13488,7 @@ namespace WindowsFormsApplication1
                     }
                     else if (currentCmd == 0x023E)
                     {
-                        if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                        if (IsDPPT)
                         {
                             int param = readFunction.ReadInt16();
                             if (param == 1 || param == 3 || param == 5 || param == 6)
@@ -13767,7 +13571,7 @@ namespace WindowsFormsApplication1
             string functions = "";
             string movements = "";
             int current = comboBox9.SelectedIndex;
-            if (!isBW && !isB2W2)
+            if (!IsBW && !IsBW2)
             {
                 #region Scripts
                 bool exists = false;
@@ -13883,7 +13687,7 @@ namespace WindowsFormsApplication1
                         }
                         else if (currentCmd == 0x021D)
                         {
-                            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                            if (IsDPPT)
                             {
                                 int param = readScript.ReadInt16();
                                 scripts += " 0x" + param.ToString("X");
@@ -13929,7 +13733,7 @@ namespace WindowsFormsApplication1
                         }
                         else if (currentCmd == 0x023E)
                         {
-                            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                            if (IsDPPT)
                             {
                                 int param = readScript.ReadInt16();
                                 scripts += " 0x" + param.ToString("X");
@@ -14122,7 +13926,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (currentCmd == 0x021D)
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     int param = readScript.ReadInt16();
                                     functions += " 0x" + param.ToString("X");
@@ -14168,7 +13972,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (currentCmd == 0x023E)
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     int param = readScript.ReadInt16();
                                     functions += " 0x" + param.ToString("X");
@@ -14544,13 +14348,13 @@ namespace WindowsFormsApplication1
         private void button33_Click(object sender, EventArgs e) // Save Script File
         {
             useIndex.Clear();
-            if (isBW || isB2W2)
+            if (IsBW || IsBW2)
             {
                 saveScriptGenV();
                 return;
             }
             #region RM
-            if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+            if (IsDPPT)
             {
                 scriptNameW = new ResourceManager("WindowsFormsApplication1.Resources.ScriptNamesW", Assembly.GetExecutingAssembly());
             }
@@ -14839,7 +14643,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (cmd[0] == "021D")
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         if (cmd.Count() >= 4 && Convert.ToUInt16(cmd[1], 16) != 0x5 && Convert.ToUInt16(cmd[1], 16) != 0x6 && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[3].Substring(2), hex, invar, out output16))
                                         {
@@ -14906,7 +14710,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (cmd[0] == "023E")
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         if (cmd.Count() >= 3 && (Convert.ToByte(cmd[1], 16) == 0x1 || Convert.ToByte(cmd[1], 16) == 0x3) && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16))
                                         {
@@ -15225,7 +15029,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (cmd[0] == "021D")
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         if (cmd.Count() >= 4 && Convert.ToUInt16(cmd[1], 16) != 0x5 && Convert.ToUInt16(cmd[1], 16) != 0x6 && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[3].Substring(2), hex, invar, out output16))
                                         {
@@ -15292,7 +15096,7 @@ namespace WindowsFormsApplication1
                                 }
                                 else if (cmd[0] == "023E")
                                 {
-                                    if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                    if (IsDPPT)
                                     {
                                         if (cmd.Count() >= 3 && (Convert.ToByte(cmd[1], 16) == 0x1 || Convert.ToByte(cmd[1], 16) == 0x3) && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16))
                                         {
@@ -15640,7 +15444,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (cmd[0] == "021D")
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     if (cmd.Count() >= 4 && Convert.ToUInt16(cmd[1], 16) != 0x5 && Convert.ToUInt16(cmd[1], 16) != 0x6 && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[3].Substring(2), hex, invar, out output16))
                                     {
@@ -15695,7 +15499,7 @@ namespace WindowsFormsApplication1
                             }
                             else if (cmd[0] == "023E")
                             {
-                                if (gameID == 0x45414441 || gameID == 0x45415041 || gameID == 0x53414441 || gameID == 0x53415041 || gameID == 0x46414441 || gameID == 0x46415041 || gameID == 0x49414441 || gameID == 0x49415041 || gameID == 0x44414441 || gameID == 0x44415041 || gameID == 0x4A414441 || gameID == 0x4A415041 || gameID == 0x4B414441 || gameID == 0x4B415041 || gameID == 0x45555043 || gameID == 0x53555043 || gameID == 0x46555043 || gameID == 0x49555043 || gameID == 0x44555043 || gameID == 0x4A555043 || gameID == 0x4B555043)
+                                if (IsDPPT)
                                 {
                                     if (cmd.Count() >= 3 && (Convert.ToByte(cmd[1], 16) == 0x1 || Convert.ToByte(cmd[1], 16) == 0x3) && UInt16.TryParse(cmd[1].Substring(2), hex, invar, out output16) && UInt16.TryParse(cmd[2].Substring(2), hex, invar, out output16))
                                     {
@@ -15882,7 +15686,7 @@ namespace WindowsFormsApplication1
         private void readScriptGenV() // Read Script File (Gen V)
         {
             #region RM
-            if (isBW)
+            if (IsBW)
             {
                 if (gameID == 0x4A425249 || gameID == 0x4A415249)
                 {
@@ -16297,7 +16101,7 @@ namespace WindowsFormsApplication1
         private void saveScriptGenV() // Save Script File (Gen V)
         {
             #region RM
-            if (isBW)
+            if (IsBW)
             {
                 if (gameID == 0x4A425249 || gameID == 0x4A415249)
                 {

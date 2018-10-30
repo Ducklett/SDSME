@@ -2124,6 +2124,81 @@
   <data name="&gt;&gt;tabPage8.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="label69.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label69.Location" type="System.Drawing.Point, System.Drawing">
+    <value>396, 8</value>
+  </data>
+  <data name="label69.Size" type="System.Drawing.Size, System.Drawing">
+    <value>69, 13</value>
+  </data>
+  <data name="label69.TabIndex" type="System.Int32, mscorlib">
+    <value>19</value>
+  </data>
+  <data name="label69.Text" xml:space="preserve">
+    <value>Palette offset</value>
+  </data>
+  <data name="&gt;&gt;label69.Name" xml:space="preserve">
+    <value>label69</value>
+  </data>
+  <data name="&gt;&gt;label69.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label69.Parent" xml:space="preserve">
+    <value>tabPage10</value>
+  </data>
+  <data name="&gt;&gt;label69.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="PalOffset.Location" type="System.Drawing.Point, System.Drawing">
+    <value>347, 4</value>
+  </data>
+  <data name="PalOffset.Size" type="System.Drawing.Size, System.Drawing">
+    <value>43, 20</value>
+  </data>
+  <data name="PalOffset.TabIndex" type="System.Int32, mscorlib">
+    <value>18</value>
+  </data>
+  <data name="&gt;&gt;PalOffset.Name" xml:space="preserve">
+    <value>PalOffset</value>
+  </data>
+  <data name="&gt;&gt;PalOffset.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;PalOffset.Parent" xml:space="preserve">
+    <value>tabPage10</value>
+  </data>
+  <data name="&gt;&gt;PalOffset.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="LockTexPal.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="LockTexPal.Location" type="System.Drawing.Point, System.Drawing">
+    <value>162, 4</value>
+  </data>
+  <data name="LockTexPal.Size" type="System.Drawing.Size, System.Drawing">
+    <value>178, 17</value>
+  </data>
+  <data name="LockTexPal.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="LockTexPal.Text" xml:space="preserve">
+    <value>Synchronize Texture and pallete</value>
+  </data>
+  <data name="&gt;&gt;LockTexPal.Name" xml:space="preserve">
+    <value>LockTexPal</value>
+  </data>
+  <data name="&gt;&gt;LockTexPal.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;LockTexPal.Parent" xml:space="preserve">
+    <value>tabPage10</value>
+  </data>
+  <data name="&gt;&gt;LockTexPal.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
   <data name="button15.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
   </data>
@@ -2149,7 +2224,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;button15.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>3</value>
   </data>
   <data name="button49.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
     <value>NoControl</value>
@@ -2319,25 +2394,25 @@
   <data name="&gt;&gt;button47.ZOrder" xml:space="preserve">
     <value>5</value>
   </data>
-  <data name="listBox2.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="MapTexturelistBox.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 19</value>
   </data>
-  <data name="listBox2.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="MapTexturelistBox.Size" type="System.Drawing.Size, System.Drawing">
     <value>160, 160</value>
   </data>
-  <data name="listBox2.TabIndex" type="System.Int32, mscorlib">
+  <data name="MapTexturelistBox.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="&gt;&gt;listBox2.Name" xml:space="preserve">
-    <value>listBox2</value>
+  <data name="&gt;&gt;MapTexturelistBox.Name" xml:space="preserve">
+    <value>MapTexturelistBox</value>
   </data>
-  <data name="&gt;&gt;listBox2.Type" xml:space="preserve">
+  <data name="&gt;&gt;MapTexturelistBox.Type" xml:space="preserve">
     <value>System.Windows.Forms.ListBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;listBox2.Parent" xml:space="preserve">
+  <data name="&gt;&gt;MapTexturelistBox.Parent" xml:space="preserve">
     <value>groupBox5</value>
   </data>
-  <data name="&gt;&gt;listBox2.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;MapTexturelistBox.ZOrder" xml:space="preserve">
     <value>6</value>
   </data>
   <data name="pictureBox2.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -2420,7 +2495,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;groupBox5.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>4</value>
   </data>
   <data name="button44.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom, Left</value>
@@ -2881,25 +2956,25 @@
   <data name="&gt;&gt;dataGridView11.ZOrder" xml:space="preserve">
     <value>11</value>
   </data>
-  <data name="listBox3.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="MapPalettelistBox.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 19</value>
   </data>
-  <data name="listBox3.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="MapPalettelistBox.Size" type="System.Drawing.Size, System.Drawing">
     <value>160, 160</value>
   </data>
-  <data name="listBox3.TabIndex" type="System.Int32, mscorlib">
+  <data name="MapPalettelistBox.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
-  <data name="&gt;&gt;listBox3.Name" xml:space="preserve">
-    <value>listBox3</value>
+  <data name="&gt;&gt;MapPalettelistBox.Name" xml:space="preserve">
+    <value>MapPalettelistBox</value>
   </data>
-  <data name="&gt;&gt;listBox3.Type" xml:space="preserve">
+  <data name="&gt;&gt;MapPalettelistBox.Type" xml:space="preserve">
     <value>System.Windows.Forms.ListBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;listBox3.Parent" xml:space="preserve">
+  <data name="&gt;&gt;MapPalettelistBox.Parent" xml:space="preserve">
     <value>groupBox3</value>
   </data>
-  <data name="&gt;&gt;listBox3.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;MapPalettelistBox.ZOrder" xml:space="preserve">
     <value>12</value>
   </data>
   <data name="groupBox3.Location" type="System.Drawing.Point, System.Drawing">
@@ -2924,7 +2999,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;groupBox3.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>5</value>
   </data>
   <data name="radioButton8.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2954,7 +3029,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;radioButton8.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>6</value>
   </data>
   <data name="radioButton7.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2981,7 +3056,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;radioButton7.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>7</value>
   </data>
   <data name="tilesetExport.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom, Left</value>
@@ -3011,7 +3086,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;tilesetExport.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>8</value>
   </data>
   <data name="tilesetImport.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Bottom, Left</value>
@@ -3041,7 +3116,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;tilesetImport.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>9</value>
   </data>
   <data name="listBox1.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left</value>
@@ -3065,7 +3140,7 @@
     <value>tabPage10</value>
   </data>
   <data name="&gt;&gt;listBox1.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>10</value>
   </data>
   <data name="tabPage10.Location" type="System.Drawing.Point, System.Drawing">
     <value>4, 22</value>
@@ -10080,7 +10155,7 @@
     <value>False</value>
   </data>
   <data name="toolsToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>48, 20</value>
+    <value>47, 20</value>
   </data>
   <data name="toolsToolStripMenuItem.Text" xml:space="preserve">
     <value>Tools</value>
